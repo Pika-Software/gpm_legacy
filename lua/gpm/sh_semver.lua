@@ -4,7 +4,8 @@ local GPM = GPM
 GPM.Semver = GPM.Semver or {}
 
 local function isValidNumber(num) -- number must be a positive and integer
-	return num >= 0 and math.floor(num) == num
+	assert(num >= 0, name .. 'must be a valid positive number')
+	assert(math.floor(num) == num, name .. 'must be a integer')
 end
 
 -- splitByDot('a.bbc.d') == {'a', 'bbc', 'd'}
@@ -29,12 +30,16 @@ local function parsePreleaseAndBuildmeta(prerelease_and_buildmeta)
 		buildmeta = prerelease_and_buildmeta:match('^(+.+)$')
 	end
 
+	assert(prerelease or buildmeta, ('the parameter %q must begin with + or - to denote a prerelease or a build'):format(prerelease_and_buildmeta))
+
 	if prerelease then
 		prerelease = prerelease:match('^-(%w[%.%w-]*)$')
+		assert(prerelease, ('the prerelease %q is not valid'):format(prerelease))
 	end
 
 	if buildmeta then
 		buildmeta = buildmeta:match('^%+(%w[%.%w-]*)$')
+		assert(buildmeta, ('the build %q is not valid'):format(buildmeta))
 	end
 
 	return prerelease, buildmeta
@@ -42,7 +47,8 @@ end
 
 local function parseVersion(ver)
 	local major, minor, patch, prerelease_and_buildmeta = string.match(ver, '^(%d+)%.?(%d*)%.?(%d*)(.-)$')
-	if type(major) ~= 'string' then return end
+	assert(type(major) == 'string', ('can not parse version from %q'):format(ver))
+
 	major, minor, patch = tonumber(major), tonumber(minor), tonumber(patch)
 	local prelease, buildmeta = parsePreleaseAndBuildmeta(prerelease_and_buildmeta)
 	return major, minor, patch, prelease, buildmeta
@@ -320,7 +326,7 @@ function mt:__tostring()
 end
 
 function mt.new(major, minor, patch, prerelease, buildmeta)
-	if not major then return end -- At least one parameter is needed
+	assert(major, 'at least one parameter is needed')
 
 	if type(major) == 'string' then
 		major, minor, patch, prerelease, buildmeta = parseVersion(major)
@@ -328,9 +334,9 @@ function mt.new(major, minor, patch, prerelease, buildmeta)
 	minor = minor or 0
 	patch = patch or 0
 
-	if not isValidNumber(major) or
-	   not isValidNumber(minor) or
-	   not isValidNumber(patch) then return end
+	isValidNumber(major)
+	isValidNumber(minor)
+	isValidNumber(patch)
 
 	return setmetatable({
 		major = major,
