@@ -70,3 +70,15 @@ function GPM.SH(filename, dir)
 end
 
 GPM.SH('sh_include.lua', 'gpm')
+
+local pkg = GPM.Package({
+	name = 'framework',
+	version = '1-dev',
+	description = 'simple framework',
+	keywords = {'framework', 'simple'},
+	homepage = 'https://pika-soft.ru',
+	bugs = 'https://pika-soft.ru/issues',
+})
+
+print('\n\n\n')
+pkg:Print()
