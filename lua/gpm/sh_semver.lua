@@ -3,7 +3,7 @@
 local GPM = GPM
 GPM.Semver = GPM.Semver or {}
 
-local function isValidNumber(num) -- number must be a positive and integer
+local function isValidNumber(num, name) -- number must be a positive and integer
 	assert(num >= 0, name .. 'must be a valid positive number')
 	assert(math.floor(num) == num, name .. 'must be a integer')
 end
@@ -334,9 +334,9 @@ function mt.new(major, minor, patch, prerelease, buildmeta)
 	minor = minor or 0
 	patch = patch or 0
 
-	isValidNumber(major)
-	isValidNumber(minor)
-	isValidNumber(patch)
+	isValidNumber(major, 'major')
+	isValidNumber(minor, 'minor')
+	isValidNumber(patch, 'patch')
 
 	return setmetatable({
 		major = major,
