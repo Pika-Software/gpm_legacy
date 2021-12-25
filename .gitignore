@@ -1,2 +1,6 @@
 .vscode/*
 *.code-workspace
+
+# ignore packages folder
+lua/gpm/packages/*
+!lua/gpm/packages/README.md
