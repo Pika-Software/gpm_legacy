@@ -5,6 +5,25 @@ GPM.Package = GPM.Package or {}
 
 assert(GPM.Semver, 'Semver module must be loaded')
 
+local function isArray(arr)
+    return #arr > 0
+end
+
+local function parseFunding(v)
+    assert(isstring(v) or istable(v), 'invalid funding information type (expected string or table)')
+
+    if isstring(v) then
+        return { url = v }
+    end
+
+    assert(v.url, 'url not found in funding information')
+
+    return {
+        url = v.url,
+        type = v.type
+    }
+end
+
 local mt = {}
 mt.__index = mt
 
@@ -95,6 +114,26 @@ function mt.new(t)
             assert(success, ('failed to parse %s: invalid contributor at index %d. See error below:\n%s'):format(pkg, i, res))
 
             pkg.contributors[i] = res
+        end
+    end
+
+    -- Parsing funding
+    assert(t.funding == nil or isstring(t.funding) or istable(t.funding), ('failed to parse %s: invalid funding'):format(pkg))
+    if t.funding then
+        if istable(t.funding) and isArray(t.funding) then
+            pkg.funding = {}
+
+            for i, v in ipairs(t.funding) do
+                local success, res = pcall(parseFunding, v)
+                assert(success, ('failed to parse %s: invalid funding at index %d. See error below:\n%s'):format(pkg, i, res))
+    
+                pkg.funding[i] = res
+            end
+        else
+            local success, res = pcall(parseFunding, t.funding)
+            assert(success, ('failed to parse %s: invalid funding. See error below:\n%s'):format(pkg, res))
+
+            pkg.funding = res
         end
     end
 

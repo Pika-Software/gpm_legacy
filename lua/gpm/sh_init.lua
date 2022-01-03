@@ -84,7 +84,13 @@ local pkg = GPM.Package({
 		'Angel (https://pika-soft.ru)',
 		'Klen list'
 	},
-	
+	funding = {
+		'https://pika-soft.ru/sponsor',
+		{
+			type = 'patreon',
+			url = 'https://patreon.com/pika-soft'
+		}
+	}
 })
 
 print('\n\n\n')
