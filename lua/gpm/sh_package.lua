@@ -28,9 +28,8 @@ function mt.new(t)
     pkg.name = t.name or 'unknown_package'
 
     -- Parsing version
+    assert(t.version == nil or isstring(t.version), ('invalid %q package version (expected string)'):format(pkg.name))
     if t.version then
-        assert(t.version, ('invalid %q package version (expected string)'):format(pkg.name))
-
         local success, res = pcall(GPM.Semver, t.version)
         assert(success, ('failed to parse version of %q package:\n%s'):format(pkg.name, res))
 
@@ -76,6 +75,14 @@ function mt.new(t)
     assert(t.license == nil or isstring(t.license), ('failed to parse %s: invalid bugs'):format(pkg))
     if isstring(t.license) then -- TODO: add spdx expressions support. https://docs.npmjs.com/cli/v8/configuring-npm/package-json#license
         pkg.license = t.license
+    end
+
+    -- Parsing author
+    if t.author then
+        local success, res = pcall(GPM.Author, t.author)
+        assert(success, ('failed to parse author of %q package:\n%s'):format(pkg.name, res))
+
+        pkg.author = res
     end
 
     return pkg
