@@ -25,8 +25,8 @@ end
 
 function mt:__tostring()
 	local buffer = { self.name }
-	if self.email then buffer[#buffer+1] = ' <' .. self.url .. '>' end
-	if self.url then buffer[#buffer+1] = ' (' .. self.email .. ')' end
+	if self.email then buffer[#buffer+1] = ' <' .. self.email .. '>' end
+	if self.url then buffer[#buffer+1] = ' (' .. self.url .. ')' end
 	return table.concat(buffer)
 end
 
