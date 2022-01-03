@@ -22,7 +22,7 @@ function mt.new(t)
     assert(istable(t), 'package information must be a table')
 
     local pkg = setmetatable({}, mt)
-    
+
     -- Parsing name
     assert(not t.name or isstring(t.name), 'invalid package name') -- TODO: add pattern matching to validate name
     pkg.name = t.name or 'unknown_package'

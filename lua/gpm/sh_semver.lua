@@ -115,7 +115,7 @@ function mt:nextPatch()
 end
 
 function mt:__eq(other)
-	return istable(other) and 
+	return istable(other) and
 		self.major == other.major and
 		self.minor == other.minor and
 		self.patch == other.patch and
