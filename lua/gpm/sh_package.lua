@@ -36,7 +36,7 @@ function mt.new(t)
 
         pkg.version = res
     else
-        pkg.version = GPM.Semver('')
+        pkg.version = GPM.Semver('0')
     end
 
     -- Parsing description
