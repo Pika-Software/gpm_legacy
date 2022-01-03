@@ -80,9 +80,22 @@ function mt.new(t)
     -- Parsing author
     if t.author then
         local success, res = pcall(GPM.Author, t.author)
-        assert(success, ('failed to parse author of %q package:\n%s'):format(pkg.name, res))
+        assert(success, ('failed to parse %s: invalid author. See error below:\n%s'):format(pkg, res))
 
         pkg.author = res
+    end
+
+    -- Parsing contributors
+    assert(t.contributors == nil or istable(t.contributors), ('failed to parse %s: invalid contributors'):format(pkg))
+    if t.contributors then
+        pkg.contributors = {}
+
+        for i, v in ipairs(t.contributors) do
+            local success, res = pcall(GPM.Author, v)
+            assert(success, ('failed to parse %s: invalid contributor at index %d. See error below:\n%s'):format(pkg, i, res))
+
+            pkg.contributors[i] = res
+        end
     end
 
     return pkg

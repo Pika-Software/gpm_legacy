@@ -78,7 +78,13 @@ local pkg = GPM.Package({
 	keywords = {'framework', 'simple'},
 	homepage = 'https://pika-soft.ru',
 	bugs = 'https://pika-soft.ru/issues',
-	author = 'Barney Rubble <b@rubble.com> (http://barnyrubble.tumblr.com/)',
+	author = 'Retro <retro@pika-soft.ru> (https://pika-soft.ru)',
+	contributors = {
+		'Prikolmen <prikolmen@pika-soft.ru>',
+		'Angel (https://pika-soft.ru)',
+		'Klen list'
+	},
+	
 })
 
 print('\n\n\n')
