@@ -137,6 +137,21 @@ function mt.new(t)
         end
     end
 
+    -- Parsing main
+    assert(t.main == nil or isstring(t.main), ('failed to parse %s: invalid main'):format(pkg))
+    pkg.main = t.main
+
+    -- Parsing repository
+    assert(t.repository == nil or isstring(t.repository) or istable(t.repository), ('failed to parse %s: invalid repository'):format(pkg))
+    if istable(t.repository) then
+        assert(isstring(t.repository.url) and isstring(t.repository.type), ('failed to parse %s: invalid repository'):format(pkg))
+        pkg.repository = {}
+        pkg.repository.url = t.repository.url
+        pkg.repository.type = t.repository.type
+    else
+        pkg.repository = t.repository
+    end
+
     return pkg
 end
 
