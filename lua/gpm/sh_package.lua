@@ -207,6 +207,12 @@ function mt.new(t)
     end
 
     -- Internal state, used for loader
+    -- States:
+    --   unloaded - Package created, but not resolved
+    --   resolving - Package resolving (probaly resolving it dependencies)
+    --   running - Package running (resolved it dependecies)
+    --   loaded - Package fully loaded (resolved and started)
+    --   failed - Package failed to load (reason should be printed in console (add last error internal variable?))
     pkg.state = 'unloaded'
     
     return pkg
