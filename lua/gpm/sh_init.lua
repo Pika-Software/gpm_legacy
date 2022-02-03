@@ -11,19 +11,22 @@ function GPM.CheckType(value, narg, tname, errorlevel)
 	error(serror, errorlevel or 2)
 end
 
-function GPM.Path(filename, dir)
-	if not isstring(filename) then return end
-	if dir and not isstring(dir) then return end
+-- function GPM.Path(filename, dir)
+-- 	if not isstring(filename) then return end
+-- 	if dir and not isstring(dir) then return end
 
-	if dir and not string.EndsWith(dir, '/') then
-		dir = dir .. '/'
-	end
+-- 	if dir and not string.EndsWith(dir, '/') then
+-- 		dir = dir .. '/'
+-- 	end
 
-	if dir then
-		return dir ..filename
-	else
-		return filename
-	end
+-- 	if dir then
+-- 		return dir ..filename
+-- 	else
+-- 		return filename
+-- 	end
+-- end
+function GPM.Path(...)
+	return table.concat({...}, '/')
 end
 
 function GPM.SafeInclude(filename)
@@ -44,7 +47,7 @@ end
 
 function GPM.CL(filename, dir)
 	GPM.CheckType(filename, 1, 'string', 3)
-	local path = GPM.Path(filename, dir)
+	local path = GPM.Path(dir, filename)
 
 	if SERVER then
 		AddCSLuaFile(path)
@@ -57,13 +60,13 @@ function GPM.SV(filename, dir)
 	if CLIENT then return end
 	GPM.CheckType(filename, 1, 'string', 3)
 
-	local path = GPM.Path(filename, dir)
+	local path = GPM.Path(dir, filename)
 	return GPM.SafeInclude(path)
 end
 
 function GPM.SH(filename, dir)
 	GPM.CheckType(filename, 1, 'string', 3)
-	local path = GPM.Path(filename, dir)
+	local path = GPM.Path(dir, filename)
 
 	AddCSLuaFile(path)
 	return GPM.SafeInclude(path)
