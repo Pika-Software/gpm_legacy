@@ -84,7 +84,23 @@ function mt:log(level, message, ...)
 end
 
 function mt:fatal(message, ...)
+	self:log('fatal', message, ...)
+end
 
+function mt:error(message, ...)
+	self:log('error', message, ...)
+end
+
+function mt:warn(message, ...)
+	self:log('warn', message, ...)
+end
+
+function mt:info(message, ...)
+	self:log('info', message, ...)
+end
+
+function mt:debug(message, ...)
+	self:log('debug', message, ...)
 end
 
 function mt.new(id)
