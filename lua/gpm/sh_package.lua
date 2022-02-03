@@ -152,6 +152,12 @@ function mt.new(t)
         pkg.repository = t.repository
     end
 
+    -- Parsing scripts
+    -- TODO: make script syntax something lika that - gpm my_package script
+
+    -- Parsing dependencies
+    assert(t.dependencies == nil or istable(t.dependencies), ('failed to parse %s: invalid main'):format(pkg))
+
     return pkg
 end
 
