@@ -33,7 +33,7 @@ local function parseDependency(name, rule)
 end
 
 local function parseDependencies(source)
-    if not istable(source) then return {} end
+    if not istable(source) then return end
     local target = {}
 
     for name, rule in pairs(source) do
@@ -200,6 +200,14 @@ function mt.new(t)
         assert(ok, ('failed to parse %s: invalid optionalDependencies: %s'):format(pkg, dependencies))
         pkg.optionalDependencies = dependencies
     end
+
+    -- Parsing root (used internal)
+    if isstring(t.root) then
+        pkg.root = t.root
+    end
+
+    -- Internal state, used for loader
+    pkg.state = 'unloaded'
     
     return pkg
 end
