@@ -24,6 +24,28 @@ local function parseFunding(v)
     }
 end
 
+local function parseDependency(name, rule)
+    assert(isstring(name), ('invalid depedency name %q'):format(tostring(name)))
+    assert(isstring(rule), ('invalid depedency version %q, name %q'):format(tostring(rule), tostring(name)))
+
+    -- Rule parsing already made in Semver
+    return rule
+end
+
+local function parseDependencies(source)
+    if not istable(source) then return {} end
+    local target = {}
+
+    for name, rule in pairs(source) do
+        local v = parseDependency(name, rule)
+        if v then
+            target[name] = v
+        end
+    end
+
+    return target
+end
+
 local mt = {}
 mt.__index = mt
 
@@ -156,8 +178,29 @@ function mt.new(t)
     -- TODO: make script syntax something lika that - gpm my_package script
 
     -- Parsing dependencies
-    assert(t.dependencies == nil or istable(t.dependencies), ('failed to parse %s: invalid main'):format(pkg))
+    assert(t.dependencies == nil or istable(t.dependencies), ('failed to parse %s: invalid dependencies'):format(pkg))
+    do
+        local ok, dependencies = pcall(parseDependencies, t.dependencies)
+        assert(ok, ('failed to parse %s: invalid dependencies: %s'):format(pkg, dependencies))
+        pkg.dependencies = dependencies
+    end
 
+    -- Parsing peerDependencies
+    assert(t.peerDependencies == nil or istable(t.peerDependencies), ('failed to parse %s: invalid peerDependencies'):format(pkg))
+    do
+        local ok, dependencies = pcall(parseDependencies, t.peerDependencies)
+        assert(ok, ('failed to parse %s: invalid peerDependencies: %s'):format(pkg, dependencies))
+        pkg.peerDependencies = dependencies
+    end
+
+    -- Parsing dependencies
+    assert(t.optionalDependencies == nil or istable(t.optionalDependencies), ('failed to parse %s: invalid optionalDependencies'):format(pkg))
+    do
+        local ok, dependencies = pcall(parseDependencies, t.optionalDependencies)
+        assert(ok, ('failed to parse %s: invalid optionalDependencies: %s'):format(pkg, dependencies))
+        pkg.optionalDependencies = dependencies
+    end
+    
     return pkg
 end
 

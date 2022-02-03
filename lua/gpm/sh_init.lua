@@ -71,6 +71,7 @@ end
 
 GPM.SH('sh_include.lua', 'gpm')
 
+print('\n\n\n')
 local pkg = GPM.Package({
 	name = 'framework',
 	version = '1-dev',
@@ -90,8 +91,18 @@ local pkg = GPM.Package({
 			type = 'patreon',
 			url = 'https://patreon.com/pika-soft'
 		}
+	},
+	dependencies = {
+		foo = '1.0.0 - 2.9999.9999',
+		bar = '>=1.0.2 <2.1.2',
+		baz = '>1.0.2 <=2.3.4',
+		boo = '2.0.1',
+		qux = '<1.0.0 || >=2.3.1 <2.4.5 || >=2.5.2 <3.0.0',
+		til = '~1.2',
+		elf = '~1.2.3',
+		two = '2.x',
+		thr = '3.3.x',
 	}
 })
 
-print('\n\n\n')
 pkg:Print()
