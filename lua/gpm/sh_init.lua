@@ -26,7 +26,14 @@ end
 -- 	end
 -- end
 function GPM.Path(...)
-	return table.concat({...}, '/')
+	local buffer = {}
+	for _, v in pairs({...}) do
+		if isstring(v) then
+			buffer[#buffer+1] = v
+		end
+	end
+
+	return #buffer ~= 0 and table.concat(buffer, '/') or nil
 end
 
 function GPM.SafeInclude(filename)
