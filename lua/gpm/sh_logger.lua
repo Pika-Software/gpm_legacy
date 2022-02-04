@@ -100,7 +100,7 @@ function mt:info(message, ...)
 end
 
 function mt:debug(message, ...)
-	self:log('debug', message, ...)
+	--self:log('debug', message, ...)
 end
 
 function mt.new(id)
