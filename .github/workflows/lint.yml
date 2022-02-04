@@ -15,12 +15,12 @@ jobs:
           submodules: 'recursive'
           ref: '1.19.1'
 
-      - name: Installing nix
-        run: sh <(curl -L https://nixos.org/nix/install) --no-daemon
+      - uses: cachix/install-nix-action@v15
+        with:
+          extra_nix_config: experimental-features = nix-command flakes
 
       - name: Compile glualint
         run: |
-          sudo echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
           cd glualint-repo
           nix develop --command ./AGGenerator.sh
           nix develop --command cabal v1-build
