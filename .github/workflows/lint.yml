@@ -34,4 +34,4 @@ jobs:
 
       - name: Run linter
         run: |
-          ./glualint lint . --output-format standard
+          ./glualint lint .
