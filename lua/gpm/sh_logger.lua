@@ -33,7 +33,7 @@ local function formatter(info)
 	local id = ('[%s]:'):format(info.id)
 	local message = string.gsub(info.message, '{(%d+)}', function(i)
 		i = tonumber(i)
-		return (i and info.args[i] ~= nil) and tostring(info.args[i]) or ('{'..i..'}')
+		return (i and info.args[i] ~= nil) and tostring(info.args[i]) or ('{' .. i .. '}')
 	end)
 
 	return {
@@ -106,10 +106,10 @@ end
 function mt.new(id)
 	assert(id == nil or isstring(id), 'id must be a string')
 
-    return setmetatable({
+	return setmetatable({
 		id = id,
 		formatter = formatter,
-    }, mt)
+	}, mt)
 end
 
 setmetatable(GPM.Logger, { __call = function(_, ...) return mt.new(...) end })

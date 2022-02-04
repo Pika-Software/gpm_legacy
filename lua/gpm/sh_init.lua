@@ -11,25 +11,11 @@ function GPM.CheckType(value, narg, tname, errorlevel)
 	error(serror, errorlevel or 2)
 end
 
--- function GPM.Path(filename, dir)
--- 	if not isstring(filename) then return end
--- 	if dir and not isstring(dir) then return end
-
--- 	if dir and not string.EndsWith(dir, '/') then
--- 		dir = dir .. '/'
--- 	end
-
--- 	if dir then
--- 		return dir ..filename
--- 	else
--- 		return filename
--- 	end
--- end
 function GPM.Path(...)
 	local buffer = {}
 	for _, v in pairs({...}) do
 		if isstring(v) then
-			buffer[#buffer+1] = v
+			buffer[#buffer + 1] = v
 		end
 	end
 
@@ -80,6 +66,8 @@ function GPM.SH(filename, dir)
 end
 
 GPM.SH('sh_include.lua', 'gpm')
+
+Loader.ResolvePackagesFromDir('gpm/packages')
 
 -- print('\n\n\n')
 -- local pkg = GPM.Package({
