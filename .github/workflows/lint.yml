@@ -1,0 +1,19 @@
+name: Lint
+on:
+  push:
+
+jobs:
+  lint:
+    runs-on: 'ubuntu-20.04'
+    steps:
+      - uses: actions-checkout@v2
+
+      - name: Download glualint
+        run: |
+          wget -O glualint.zip https://github.com/FPtje/GLuaFixer/releases/download/1.19.1/glualint-1.19.1-linux-stripped.zip
+          unzip glualint.zip
+          rm glualint.zip
+
+      - name: Run linter
+        run: |
+          ./glualint lint .
