@@ -1,0 +1,12 @@
+{
+	"title": "gpm - Glua Package Manager",
+	"type": "tool",
+	"tags": [
+	  "fun",
+	  "realism",
+	  "build"
+	],
+	"ignore": [
+	  "*.md"
+	]
+  }
