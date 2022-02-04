@@ -20,7 +20,7 @@ jobs:
 
       - name: Compile glualint
         run: |
-          sudo echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
+          sudo echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
           cd glualint-repo
           nix develop --command ./AGGenerator.sh
           nix develop --command cabal v1-build
