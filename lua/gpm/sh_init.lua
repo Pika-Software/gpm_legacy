@@ -67,7 +67,7 @@ end
 
 GPM.SH('sh_include.lua', 'gpm')
 
-Loader.ResolvePackagesFromDir('gpm/packages')
+GPM.Loader.ResolvePackagesFromDir('gpm/packages')
 
 -- print('\n\n\n')
 -- local pkg = GPM.Package({
