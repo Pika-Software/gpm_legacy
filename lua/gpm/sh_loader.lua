@@ -24,6 +24,9 @@ local function getPackageFromPath(path)
 
 	local data = file.Read(GPM.Path(path, 'package.lua'), 'LUA')
 	if data then
+		-- Send package.lua to client
+		AddCSLuaFile(GPM.Path(path, 'package.lua'))
+		
 		func = CompileString(data, GPM.Path(path, 'package.lua'), false)
 		if isstring(func) then
 			err = func
