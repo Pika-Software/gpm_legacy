@@ -226,11 +226,11 @@ function Loader.RunPackage(pkg)
 
 	pkg.state = 'running'
 
-	PKG_NAME = pkg.name
+	PKG = pkg
 
 	local ok, err = GPM.SH( path )
 
-	PKG_NAME = nil
+	PKG = nil
 
 	if not ok then
 		pkg.state = 'failed'
