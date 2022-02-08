@@ -225,7 +225,13 @@ function Loader.RunPackage(pkg)
 	end
 
 	pkg.state = 'running'
-	local ok, err = GPM.SH(path)
+
+	PKG_NAME = pkg.name
+
+	local ok, err = GPM.SH( path )
+
+	PKG_NAME = nil
+
 	if not ok then
 		pkg.state = 'failed'
 		log:error('{1} package run error:\n{2}', pkg, err)
