@@ -20,9 +20,12 @@ end
 
 local function getPackageFromPath(path)
 	local err = 'package.lua not found'
+	local func
 
 	local packageLua = GPM.Path( path, 'package.lua' )
-	local func = CompileFile( packageLua )
+	if file.Exists(packageLua, 'LUA') then
+		func = CompileFile( packageLua )
+	end
 
 	-- Send package.lua to client
 	AddCSLuaFile( packageLua )
@@ -220,7 +223,7 @@ function Loader.RunPackage(pkg)
 		return false
 	end
 
-	if pkg.state ~= 'resolving' then
+	if pkg.state ~= 'resolved' then
 		log:warn('package {1} not resolved, some dependencies may be missed.', pkg)
 	end
 
@@ -238,7 +241,7 @@ function Loader.RunPackage(pkg)
 		return false
 	end
 
-	pkg.state = 'loaded'
+	pkg.state = 'started'
 	return true
 end
 
@@ -260,8 +263,10 @@ function Loader.ResolvePackage(pkg, packages)
 		return false
 	end
 
+	pkg.state = 'resolved'
 	ok = Loader.RunPackage(pkg)
 	if ok then
+		pkg.state = 'loaded'
 		log:info('{1} loaded.', pkg)
 	end
 	return ok
