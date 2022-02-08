@@ -229,11 +229,12 @@ function Loader.RunPackage(pkg)
 
 	pkg.state = 'running'
 
+	local oldPKG = PKG
 	PKG = pkg
 
 	local ok, err = GPM.SH( path )
 
-	PKG = nil
+	PKG = oldPKG
 
 	if not ok then
 		pkg.state = 'failed'
