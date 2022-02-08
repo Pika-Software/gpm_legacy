@@ -238,7 +238,7 @@ function Loader.RunPackage(pkg)
 		return false
 	end
 
-	pkg.state = 'loaded'
+	pkg.state = 'started'
 	return true
 end
 
@@ -260,8 +260,10 @@ function Loader.ResolvePackage(pkg, packages)
 		return false
 	end
 
+	pkg.state = 'resolved'
 	ok = Loader.RunPackage(pkg)
 	if ok then
+		pkg.state = 'loaded'
 		log:info('{1} loaded.', pkg)
 	end
 	return ok

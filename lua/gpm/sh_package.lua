@@ -210,6 +210,7 @@ function mt.new(t)
 	-- States:
 	--   unloaded - Package created, but not resolved
 	--   resolving - Package resolving (probaly resolving it dependencies)
+	--   resolved - Package succesfully resolved
 	--   running - Package running (resolved it dependecies)
 	--   started - Package started (after running)
 	--   loaded - Package fully loaded (resolved and started)
