@@ -20,18 +20,16 @@ end
 
 local function getPackageFromPath(path)
 	local err = 'package.lua not found'
-	local func
 
-	local data = file.Read(GPM.Path(path, 'package.lua'), 'LUA')
-	if data then
-		-- Send package.lua to client
-		AddCSLuaFile(GPM.Path(path, 'package.lua'))
-		
-		func = CompileString(data, GPM.Path(path, 'package.lua'), false)
-		if isstring(func) then
-			err = func
-			func = nil
-		end
+	local packageLua = GPM.Path( path, 'package.lua' )
+	local func = CompileFile( packageLua )
+
+	-- Send package.lua to client
+	AddCSLuaFile( packageLua )
+
+	if isstring( func ) then
+		err = func
+		func = nil
 	end
 
 	local package_info
@@ -41,7 +39,7 @@ local function getPackageFromPath(path)
 		local ok, info = pcall(func)
 
 		if ok then
-			if istable(info) then
+			if istable( info ) then
 				package_info = info
 			else
 				err = 'invalid info from package.lua (not is table)'
@@ -51,7 +49,7 @@ local function getPackageFromPath(path)
 		end
 	end
 
-	assert(package_info, err)
+	assert( package_info, err )
 
 	package_info = func()
 	package_info.name = package_info.name or path:GetFileFromFilename()
