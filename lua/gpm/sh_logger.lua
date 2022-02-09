@@ -1,14 +1,15 @@
 local GPM = GPM
 GPM.Logger = GPM.Logger or {}
 
-local colorSupport = MENU_DLL or not game.IsDedicated()
+-- https://github.com/WilliamVenner/gmsv_concolormsg
+local colorSupport = MENU_DLL or not game.IsDedicated() or file.Exists( "lua/bin/gmsv_concolormsg_win64.dll", "GAME" )
 
 local colors = {
 	gray = colorSupport and Color(128,128,128) or Color(192,192,192),
 	white = Color(220, 220, 220),
 	red = Color(255, 0, 0),
 	yellow = Color(255, 255, 0),
-	blue = Color(0, 0, 255),
+	blue = Color(0, 130, 255),
 	green = Color(0, 255, 0),
 	server = colorSupport and Color(156, 241, 255, 200) or Color(0, 0, 255),
 	client = Color(255, 241, 122, 200),
