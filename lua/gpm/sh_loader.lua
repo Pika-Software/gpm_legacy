@@ -24,7 +24,6 @@ do
 		for num, dir in ipairs( dirs ) do
 			if file_Exists( GPM.Path( root, dir, 'package.lua' ), 'LUA' ) then
 				table_insert( packages, GPM.Path( root, dir ) )
-				-- packages[#packages + 1] = GPM.Path( root, dir )
 			end
 		end
 
