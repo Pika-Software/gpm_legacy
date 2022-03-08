@@ -1,9 +1,16 @@
+local setmetatable = setmetatable
+local isstring = isstring
+local istable = istable
+local ipairs = ipairs
+local assert = assert
+local pcall = pcall
+
 -- Package class
 
 local GPM = GPM
 GPM.Package = GPM.Package or {}
 
-assert(GPM.Semver, 'Semver module must be loaded')
+assert( GPM.Semver, 'Semver module must be loaded' )
 
 local function isArray(arr)
 	return #arr > 0
@@ -32,18 +39,23 @@ local function parseDependency(name, rule)
 	return rule
 end
 
-local function parseDependencies(source)
-	if not istable(source) then return end
-	local target = {}
+local parseDependencies
+do
+	local pairs = pairs
+	function parseDependencies( source )
+		if istable( source ) then
+			local target = {}
 
-	for name, rule in pairs(source) do
-		local v = parseDependency(name, rule)
-		if v then
-			target[name] = v
+			for name, rule in pairs( source ) do
+				local v = parseDependency(name, rule)
+				if v then
+					target[name] = v
+				end
+			end
+
+			return target
 		end
 	end
-
-	return target
 end
 
 local mt = {}
@@ -53,10 +65,17 @@ function mt:__tostring()
 	return tostring(self.name) .. '@' .. tostring(self.version)
 end
 
-function mt:Print()
-	print(self)
-	print('==========================================')
-	PrintTable(self)
+do
+
+	local PrintTable = PrintTable
+	local print = print
+
+	function mt:Print()
+		print(self)
+		print('==========================================')
+		PrintTable(self)
+	end
+
 end
 
 function mt.new(t)

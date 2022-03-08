@@ -1,7 +1,6 @@
-local GPM = GPM
-
-GPM.SH('sh_logger.lua', 'gpm')
-GPM.SH('sh_semver.lua', 'gpm')
-GPM.SH('sh_author.lua', 'gpm')
-GPM.SH('sh_package.lua', 'gpm')
-GPM.SH('sh_loader.lua', 'gpm')
+local include = GPM.SH
+include('sh_logger.lua', 'gpm')
+include('sh_semver.lua', 'gpm')
+include('sh_author.lua', 'gpm')
+include('sh_package.lua', 'gpm')
+include('sh_loader.lua', 'gpm')

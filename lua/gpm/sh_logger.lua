@@ -1,6 +1,7 @@
 local GPM = GPM
 GPM.Logger = GPM.Logger or {}
 
+-- For colorable server console check Billy's Github
 -- https://github.com/WilliamVenner/gmsv_concolormsg
 local colorSupport = MENU_DLL or not game.IsDedicated() or file.Exists( "lua/bin/gmsv_concolormsg_win64.dll", "GAME" )
 
@@ -28,13 +29,13 @@ local function formatTime()
 	return os.date('%H:%M:%S')
 end
 
-local function formatter(info)
-	local time = formatTime(info.timestamp)
-	local level = string.upper(info.level)
-	local id = ('[%s]:'):format(info.id)
-	local message = string.gsub(info.message, '{(%d+)}', function(i)
-		i = tonumber(i)
-		return (i and info.args[i] ~= nil) and tostring(info.args[i]) or ('{' .. i .. '}')
+local function formatter( info )
+	local time = formatTime( info.timestamp )
+	local level = info.level:upper()
+	local id = ('[%s]:'):format( info.id )
+	local message = info.message:gsub('{(%d+)}', function(i)
+		i = tonumber( i )
+		return (i and info.args[i] ~= nil) and tostring( info.args[i] ) or ('{' .. i .. '}')
 	end)
 
 	return {
@@ -59,29 +60,61 @@ end
 local mt = {}
 mt.__index = mt
 
-function mt:log(level, message, ...)
-	local info = {
-		id = self.id and tostring(self.id) or 'unknown',
-		timestamp = os.time(),
-		level = level and tostring(level) or 'info',
-		message = tostring(message),
-		args = {...}
-	}
+do
 
-	local msg
-	if isfunction(self.formatter) then
-		msg = self.formatter(info)
+	local type = type
+
+	do
+
+		local assert = assert
+
+		function mt.new(id)
+			assert( (id == nil) or type( id ) == "string", 'id must be a string' )
+
+			return setmetatable({
+				id = id,
+				formatter = formatter,
+			}, mt)
+		end
+
 	end
 
-	if istable(msg) then
-		MsgC(unpack(msg))
-	elseif msg ~= nil and msg ~= false then
-		print(msg)
-	elseif msg == false then
-		return
-	else
-		PrintTable(info)
+	do
+
+		local PrintTable = PrintTable
+		local tostring = tostring
+		local os_time = os.time
+		local unpack = unpack
+		local print = print
+		local MsgC = MsgC
+
+		function mt:log( level, message, ... )
+			local info = {
+				id = self.id and tostring( self.id ) or 'unknown',
+				timestamp = os_time(),
+				level = level and tostring( level ) or 'info',
+				message = tostring( message ),
+				args = {...}
+			}
+
+			local msg
+			if type( self.formatter ) == "function" then
+				msg = self.formatter(info)
+			end
+
+			if type( msg ) == "table" then
+				MsgC( unpack( msg ) )
+			elseif (msg ~= nil) and (msg ~= false) then
+				print( msg )
+			elseif (msg == false) then
+				return
+			else
+				PrintTable( info )
+			end
+		end
+
 	end
+
 end
 
 function mt:fatal(message, ...)
@@ -102,15 +135,6 @@ end
 
 function mt:debug(message, ...)
 	--self:log('debug', message, ...)
-end
-
-function mt.new(id)
-	assert(id == nil or isstring(id), 'id must be a string')
-
-	return setmetatable({
-		id = id,
-		formatter = formatter,
-	}, mt)
 end
 
 setmetatable(GPM.Logger, { __call = function(_, ...) return mt.new(...) end })

@@ -1,106 +1,107 @@
+local type = type
+
 GPM = GPM or {}
 local GPM = GPM
 
-function GPM.CheckType(value, narg, tname, errorlevel)
-	if type(value) == tname then return end
+do
 
-	local dinfo = debug.getinfo(2, 'n')
-	local fname = dinfo and dinfo.name or 'func'
-	local serror = ('bad argument #%d to \'%s\' (%s expected, got %s)'):format(narg, fname, tname, type(value))
+	local debug_getinfo = debug.getinfo
+	local error = error
 
-	error(serror, errorlevel or 2)
+	function GPM.CheckType( value, narg, tname, errorlevel )
+		if type(value) == tname then return end
+
+		local dinfo = debug_getinfo( 2, 'n' )
+		local fname = dinfo and dinfo.name or 'func'
+		local serror = ('bad argument #%d to \'%s\' (%s expected, got %s)'):format( narg, fname, tname, type( value ) )
+
+		error(serror, errorlevel or 2)
+	end
+
 end
 
-function GPM.Path(...)
-	local buffer = {}
-	for _, v in pairs({...}) do
-		if isstring(v) then
-			buffer[#buffer + 1] = v
+do
+
+	local table_insert = table.insert
+	local table_concat = table.concat
+
+	function GPM.Path( ... )
+		local args = {...}
+
+		local buffer = {}
+		for i = 1, #args do
+			local str = args[i]
+			if type( str ) == "string" then
+				table_insert( buffer, str )
+			end
+		end
+
+		if (#buffer == 0) then
+			return nil
+		end
+
+		return table_concat( buffer, '/' )
+	end
+
+end
+
+do
+
+	local debug_getregistry = debug.getregistry
+	local include = include
+	local unpack = unpack
+
+	function GPM.SafeInclude( filename )
+		GPM.CheckType(filename, 1, 'string', 3)
+
+		local errorhandler = debug_getregistry()[1]
+		local lasterr
+		debug_getregistry()[1] = function(err)
+			lasterr = err
+			return errorhandler(err)
+		end
+
+		local args = { include( filename ) }
+		debug_getregistry()[1] = errorhandler
+
+		return lasterr == nil, lasterr or unpack(args)
+	end
+
+end
+
+function GPM.SV( filename, dir )
+	if CLIENT then return end
+	GPM.CheckType(filename, 1, 'string', 3)
+	return GPM.SafeInclude( GPM.Path( dir, filename ) )
+end
+
+do
+
+	local AddCSLuaFile = AddCSLuaFile
+
+	function GPM.CL( filename, dir )
+		GPM.CheckType( filename, 1, 'string', 3 )
+		local path = GPM.Path( dir, filename )
+
+		if SERVER then
+			AddCSLuaFile( path )
+		else
+			return GPM.SafeInclude( path )
 		end
 	end
 
-	return #buffer ~= 0 and table.concat(buffer, '/') or nil
-end
+	function GPM.SH( filename, dir )
+		GPM.CheckType( filename, 1, 'string', 3 )
+		local path = GPM.Path( dir, filename )
 
-function GPM.SafeInclude(filename)
-	GPM.CheckType(filename, 1, 'string', 3)
+		if SERVER then
+			AddCSLuaFile( path )
+		end
 
-	local errorhandler = debug.getregistry()[1]
-	local lasterr
-	debug.getregistry()[1] = function(err)
-		lasterr = err
-		return errorhandler(err)
+		return GPM.SafeInclude( path )
 	end
 
-	local args = { include(filename) }
-	debug.getregistry()[1] = errorhandler
-
-	return lasterr == nil, lasterr or unpack(args)
-end
-
-function GPM.CL(filename, dir)
-	GPM.CheckType(filename, 1, 'string', 3)
-	local path = GPM.Path(dir, filename)
-
-	if SERVER then
-		AddCSLuaFile(path)
-	else
-		return GPM.SafeInclude(path)
-	end
-end
-
-function GPM.SV(filename, dir)
-	if CLIENT then return end
-	GPM.CheckType(filename, 1, 'string', 3)
-
-	local path = GPM.Path(dir, filename)
-	return GPM.SafeInclude(path)
-end
-
-function GPM.SH(filename, dir)
-	GPM.CheckType(filename, 1, 'string', 3)
-	local path = GPM.Path(dir, filename)
-
-	AddCSLuaFile(path)
-	return GPM.SafeInclude(path)
 end
 
 GPM.SH('sh_include.lua', 'gpm')
-
 GPM.Loader.ResolvePackagesFromDir('gpm/packages')
-
--- print('\n\n\n')
--- local pkg = GPM.Package({
--- 	name = 'framework',
--- 	version = '1-dev',
--- 	description = 'simple framework',
--- 	keywords = {'framework', 'simple'},
--- 	homepage = 'https://pika-soft.ru',
--- 	bugs = 'https://pika-soft.ru/issues',
--- 	author = 'Retro <retro@pika-soft.ru> (https://pika-soft.ru)',
--- 	contributors = {
--- 		'Prikolmen <prikolmen@pika-soft.ru>',
--- 		'Angel (https://pika-soft.ru)',
--- 		'Klen list'
--- 	},
--- 	funding = {
--- 		'https://pika-soft.ru/sponsor',
--- 		{
--- 			type = 'patreon',
--- 			url = 'https://patreon.com/pika-soft'
--- 		}
--- 	},
--- 	dependencies = {
--- 		foo = '1.0.0 - 2.9999.9999',
--- 		bar = '>=1.0.2 <2.1.2',
--- 		baz = '>1.0.2 <=2.3.4',
--- 		boo = '2.0.1',
--- 		qux = '<1.0.0 || >=2.3.1 <2.4.5 || >=2.5.2 <3.0.0',
--- 		til = '~1.2',
--- 		elf = '~1.2.3',
--- 		two = '2.x',
--- 		thr = '3.3.x',
--- 	}
--- })
-
--- pkg:Print()
