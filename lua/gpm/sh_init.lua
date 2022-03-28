@@ -105,3 +105,4 @@ end
 
 GPM.SH('sh_include.lua', 'gpm')
 GPM.Loader.ResolvePackagesFromDir('gpm/packages')
+GPM.Loader.ResolvePackagesFromDir('packages')
