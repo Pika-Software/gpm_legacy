@@ -7,13 +7,13 @@
 * Package dependency support
 
 ## Planned features
- * [ ] Concommands support
- * [ ] Dependency downloading from github and url
+ * [ ] Concommands
  * [ ] Package registry with package verification
  * [ ] Package enviroment isolation
- * [ ] GUI Support (PUI?)
+ * [ ] GUI Support ( gpm-gui package )
  * [ ] Package hot reload
- * [ ] Package auto update from github/url/registry
+ * [ ] Package downloading/updating via GitHub
+ * [ ] Automatic downloading dependencies from github
 
 ## How to create your own package?
 1. Create `package.lua` and `main.lua` files in directory `lua/gpm/packages/<your-package-name>/`.
