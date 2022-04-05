@@ -1,5 +1,5 @@
 # gpm [![Lint](https://github.com/Pika-Software/gpm/actions/workflows/lint.yml/badge.svg)](https://github.com/Pika-Software/gpm/actions/workflows/lint.yml)
-GLua Package Manager
+![GLua Package Manager](https://i.imgur.com/w454Ms1.png?1)
 
 ## Features
 * Package information structure like [package.json](https://docs.npmjs.com/cli/v6/configuring-npm/package-json)
