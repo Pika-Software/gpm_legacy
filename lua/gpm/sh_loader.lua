@@ -38,50 +38,43 @@ do
 		local CompileFile = CompileFile
 		local setfenv = setfenv
 		local assert = assert
+		local Error = Error
 
 		function getPackageFromPath( path )
-			local err = 'package.lua not found'
-			local func
+			local packageName = path:GetFileFromFilename()
+			local filename = GPM.Path( path, 'package.lua' )
+			if file_Exists( filename, "LUA" ) then
+				assert( CLIENT or file.Size( filename, "LUA" ) > 0, filename .. " is empty!" )
 
-			local packageLua = GPM.Path( path, 'package.lua' )
-			if file_Exists( packageLua, 'LUA' ) then
-				func = CompileFile( packageLua )
-			end
-
-			-- Send package.lua to client
-			if SERVER then
-				AddCSLuaFile( packageLua )
-			end
-
-			if type( func ) == "string" then
-				err = func
-				func = nil
-			end
-
-			local package_info
-			if func then
-				-- Limiting function (package.lua file) enviroment
-				setfenv( func, {} )
-				local ok, info = pcall( func )
-
-				if ok then
-					if type( info ) == "table" then
-						package_info = info
-					else
-						err = 'invalid info from package.lua (not is table)'
-					end
-				else
-					err = 'package.lua not loadable'
+				if (SERVER) then
+					AddCSLuaFile( filename )
 				end
+
+				local func = CompileFile( filename )
+				assert( type( func ) == "function", "Attempt to compile package " .. packageName .. " failed!" )
+
+				local env = {}
+				setfenv( func, env )
+
+				local ok, data = pcall( func )
+				if (ok) then
+					local package = {}
+					if type( data ) == "table" then
+						package = data
+					else
+						package = env
+					end
+
+					package.name = package.name or packageName
+					package.root = path
+
+					return GPM.Package( package )
+				end
+
+				Error( "Package '" .. packageName .. "' сontains an error!" )
 			end
 
-			assert( package_info, err )
-
-			package_info = func()
-			package_info.name = package_info.name or path:GetFileFromFilename()
-			package_info.root = path
-
-			return GPM.Package( package_info )
+			Error( filename .. " not found!" )
 		end
 
 	end
@@ -302,10 +295,9 @@ function Loader.ResolvePackage( pkg, packages )
 	end
 
 	pkg.state = 'resolving'
-	local ok =
-		resolveDependencies( pkg, packages ) and
-		resolvePeerDependencies( pkg, packages ) and
-		resolveOptionalDependencies( pkg, packages )
+	local ok = resolveDependencies( pkg, packages ) and
+			resolvePeerDependencies( pkg, packages ) and
+			resolveOptionalDependencies( pkg, packages )
 
 	if not ok then
 		pkg.state = 'failed'
@@ -315,7 +307,7 @@ function Loader.ResolvePackage( pkg, packages )
 
 	pkg.state = 'resolved'
 	ok = Loader.RunPackage( pkg )
-	if ok then
+	if (ok) then
 		pkg.state = 'loaded'
 		log:info( '{1} loaded.', pkg )
 	end
