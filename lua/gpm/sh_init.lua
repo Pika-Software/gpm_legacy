@@ -83,7 +83,7 @@ do
 		GPM.CheckType( filename, 1, 'string', 3 )
 		local path = GPM.Path( dir, filename )
 
-		if SERVER then
+		if (SERVER) then
 			AddCSLuaFile( path )
 		else
 			return GPM.SafeInclude( path )
@@ -94,7 +94,7 @@ do
 		GPM.CheckType( filename, 1, 'string', 3 )
 		local path = GPM.Path( dir, filename )
 
-		if SERVER then
+		if (SERVER) then
 			AddCSLuaFile( path )
 		end
 
