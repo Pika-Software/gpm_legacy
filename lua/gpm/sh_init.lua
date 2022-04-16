@@ -104,5 +104,5 @@ do
 end
 
 GPM.SH('sh_include.lua', 'gpm')
-GPM.Loader.ResolvePackagesFromDir('gpm/packages')
+-- GPM.Loader.ResolvePackagesFromDir('gpm/packages') -- Legacy
 GPM.Loader.ResolvePackagesFromDir('packages')

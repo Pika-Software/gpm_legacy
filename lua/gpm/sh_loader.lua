@@ -83,7 +83,7 @@ do
 		local dirs = getPackagesPathsFromDir( root )
 		local packages = {}
 
-		for num, dir in ipairs(dirs) do
+		for num, dir in ipairs( dirs ) do
 			local ok, package = xpcall( getPackageFromPath, function( err )
 				log:error( 'failed to load package from "{1}":', dir )
 				ErrorNoHaltWithStack( err )
