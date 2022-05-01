@@ -39,6 +39,7 @@ do
 		local setfenv = setfenv
 		local assert = assert
 		local Error = Error
+		local pairs = pairs
 
 		function getPackageFromPath( path )
 			local packageName = path:GetFileFromFilename()
@@ -60,7 +61,10 @@ do
 				if (ok) then
 					local package = {}
 					if type( data ) == "table" then
-						package = data
+						package = {}
+						for key, value in pairs( data ) do
+							package[ key:lower() ] = value
+						end
 					else
 						package = env
 					end
