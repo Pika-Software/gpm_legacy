@@ -61,12 +61,13 @@ do
 				if (ok) then
 					local package = {}
 					if type( data ) == "table" then
-						package = {}
-						for key, value in pairs( data ) do
-							package[ key:lower() ] = value
-						end
+						package = data
 					else
 						package = env
+					end
+
+					for key, value in pairs( package ) do
+						package[ key:lower() ] = value
 					end
 
 					package.name = package.name or packageName
