@@ -1,13 +1,25 @@
+module( "GPM", package.seeall )
+
 local file_Exists = file.Exists
 local type = type
 
-local GPM = GPM
-GPM.Loader = GPM.Loader or {}
-GPM.Packages = GPM.Packages or {}
-local Loader = GPM.Loader
-local Packages = GPM.Packages
+Loader = Loader or {}
+Packages = Packages or {}
 
-local log = GPM.Logger( 'GPM.Loader' )
+
+do
+
+	local log = Logger( 'GPM' )
+	concommand.Add("gpm_list", function()
+		for name, package in pairs( Packages ) do
+			log:info( "{1} - {2}", package, package.description == "" and "No Description" or package.description )
+		end
+	end)
+
+end
+
+
+local log = Logger( 'GPM.Loader' )
 
 do
 
@@ -18,12 +30,12 @@ do
 	local ipairs = ipairs
 
 	local function getPackagesPathsFromDir( root )
-		local files, dirs = file_Find( GPM.Path( root, '*' ), 'LUA' )
+		local files, dirs = file_Find( Path( root, '*' ), 'LUA' )
 
 		local packages = {}
 		for num, dir in ipairs( dirs ) do
-			if file_Exists( GPM.Path( root, dir, 'package.lua' ), 'LUA' ) then
-				table_insert( packages, GPM.Path( root, dir ) )
+			if file_Exists( Path( root, dir, 'package.lua' ), 'LUA' ) then
+				table_insert( packages, Path( root, dir ) )
 			end
 		end
 
@@ -43,13 +55,9 @@ do
 
 		function getPackageFromPath( path )
 			local packageName = path:GetFileFromFilename()
-			local filename = GPM.Path( path, 'package.lua' )
+			local filename = Path( path, 'package.lua' )
 			if file_Exists( filename, "LUA" ) then
 				assert( CLIENT or file.Size( filename, "LUA" ) > 0, filename .. " is empty!" )
-
-				if (SERVER) then
-					AddCSLuaFile( filename )
-				end
 
 				local func = CompileFile( filename )
 				assert( type( func ) == "function", "Attempt to compile package " .. packageName .. " failed!" )
@@ -73,7 +81,11 @@ do
 					package.name = package.name or packageName
 					package.root = path
 
-					return GPM.Package( package )
+					if (SERVER) and not package.onlyserver then
+						AddCSLuaFile( filename )
+					end
+
+					return Package( package )
 				end
 
 				Error( "Package '" .. packageName .. "' сontains an error!" )
@@ -84,26 +96,46 @@ do
 
 	end
 
-	function Loader.LoadPackages( root )
-		local dirs = getPackagesPathsFromDir( root )
-		local packages = {}
+	do
 
-		for num, dir in ipairs( dirs ) do
-			local ok, package = xpcall( getPackageFromPath, function( err )
-				log:error( 'failed to load package from "{1}":', dir )
-				ErrorNoHaltWithStack( err )
-			end, dir )
-
-			if ok then
-				table_insert( packages, package )
-			end
+		local roots = {}
+		function Loader.Root( path )
+			table_insert( roots, path )
 		end
 
-		return packages
+		local table_Merge = table.Merge
+		function Loader.LoadPackages( root )
+			local dirs = {}
+			local packages = {}
+
+			if (root == nil) then
+				for num, root in ipairs( roots ) do
+					log:info( 'Resolving packages from "{1}"...', root )
+					dirs = table_Merge( dirs, getPackagesPathsFromDir( root ) )
+				end
+			else
+				log:info( 'Resolving packages from "{1}"...', root )
+				dirs = getPackagesPathsFromDir( root )
+			end
+
+			for num, dir in ipairs( dirs ) do
+				local ok, package = xpcall( getPackageFromPath, function( err )
+					log:error( 'failed to load package from "{1}":', dir )
+					ErrorNoHaltWithStack( err )
+				end, dir )
+
+				if ok then
+					table_insert( packages, package )
+				end
+			end
+
+			return packages
+		end
+
 	end
 
 	function Loader.ResolvePackages( packages, noRegister )
-		GPM.CheckType( packages, 1, 'table', 3 )
+		CheckType( packages, 1, 'table', 3 )
 
 		-- Adding packages to registry
 		local registry = not noRegister and Packages or {}
@@ -266,8 +298,8 @@ function Loader.RunPackage(pkg)
 
 	local main = pkg.main or 'main.lua'
 	local path
-	if file_Exists( GPM.Path( pkg.root, main ), 'LUA' ) then
-		path = GPM.Path( pkg.root, main )
+	if file_Exists( Path( pkg.root, main ), 'LUA' ) then
+		path = Path( pkg.root, main )
 	elseif (main ~= 'main.lua') and file_Exists( main, 'LUA' ) then
 		path = main
 	else
@@ -282,7 +314,7 @@ function Loader.RunPackage(pkg)
 
 	pkg.state = 'running'
 
-	local ok, err = GPM.SH( path )
+	local ok, err = SH( path )
 	if not ok then
 		pkg.state = 'failed'
 		log:error( '{1} package run error:\n{2}', pkg, err )
@@ -320,9 +352,6 @@ function Loader.ResolvePackage( pkg, packages )
 	return ok
 end
 
-function Loader.ResolvePackagesFromDir( root, noRegister )
-	GPM.CheckType( root, 1, 'string', 3 )
-	log:info( 'Resolving packages from "{1}"...', root )
-
-	return Loader.ResolvePackages( Loader.LoadPackages( root ), noRegister )
+function Loader.ResolveAllPackages( noRegister )
+	return Loader.ResolvePackages( Loader.LoadPackages(), noRegister )
 end

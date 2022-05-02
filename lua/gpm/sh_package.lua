@@ -1,3 +1,5 @@
+module( "GPM", package.seeall )
+
 local setmetatable = setmetatable
 local isstring = isstring
 local istable = istable
@@ -6,11 +8,9 @@ local assert = assert
 local pcall = pcall
 
 -- Package class
+Package = Package or {}
 
-local GPM = GPM
-GPM.Package = GPM.Package or {}
-
-assert( GPM.Semver, 'Semver module must be loaded' )
+assert( Semver, 'Semver module must be loaded' )
 
 local function isArray(arr)
 	return #arr > 0
@@ -90,12 +90,12 @@ function mt.new(t)
 	-- Parsing version
 	assert(t.version == nil or isstring(t.version), ('invalid %q package version (expected string)'):format(pkg.name))
 	if t.version then
-		local success, res = pcall(GPM.Semver, t.version)
+		local success, res = pcall(Semver, t.version)
 		assert(success, ('failed to parse version of %q package:\n%s'):format(pkg.name, res))
 
 		pkg.version = res
 	else
-		pkg.version = GPM.Semver('0')
+		pkg.version = Semver('0')
 	end
 
 	-- Parsing description
@@ -139,7 +139,7 @@ function mt.new(t)
 
 	-- Parsing author
 	if t.author then
-		local success, res = pcall(GPM.Author, t.author)
+		local success, res = pcall(Author, t.author)
 		assert(success, ('failed to parse %s: invalid author. See error below:\n%s'):format(pkg, res))
 
 		pkg.author = res
@@ -151,7 +151,7 @@ function mt.new(t)
 		pkg.contributors = {}
 
 		for i, v in ipairs(t.contributors) do
-			local success, res = pcall(GPM.Author, v)
+			local success, res = pcall(Author, v)
 			assert(success, ('failed to parse %s: invalid contributor at index %d. See error below:\n%s'):format(pkg, i, res))
 
 			pkg.contributors[i] = res
@@ -239,4 +239,4 @@ function mt.new(t)
 	return pkg
 end
 
-setmetatable(GPM.Package, { __call = function(_, ...) return mt.new(...) end })
+setmetatable(Package, { __call = function(_, ...) return mt.new(...) end })

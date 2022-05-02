@@ -1,15 +1,14 @@
-local type = type
+module( "GPM", package.seeall )
 
-GPM = GPM or {}
-local GPM = GPM
+local type = type
 
 do
 
 	local debug_getinfo = debug.getinfo
 	local error = error
 
-	function GPM.CheckType( value, narg, tname, errorlevel )
-		if type(value) == tname then return end
+	function CheckType( value, narg, tname, errorlevel )
+		if type( value ) == tname then return end
 
 		local dinfo = debug_getinfo( 2, 'n' )
 		local fname = dinfo and dinfo.name or 'func'
@@ -25,7 +24,7 @@ do
 	local table_insert = table.insert
 	local table_concat = table.concat
 
-	function GPM.Path( ... )
+	function Path( ... )
 		local args = {...}
 
 		local buffer = {}
@@ -51,8 +50,8 @@ do
 	local include = include
 	local unpack = unpack
 
-	function GPM.SafeInclude( filename )
-		GPM.CheckType(filename, 1, 'string', 3)
+	function SafeInclude( filename )
+		CheckType(filename, 1, 'string', 3)
 
 		local errorhandler = debug_getregistry()[1]
 		local lasterr
@@ -69,40 +68,48 @@ do
 
 end
 
-function GPM.SV( filename, dir )
+function SV( filename, dir )
 	if CLIENT then return end
-	GPM.CheckType(filename, 1, 'string', 3)
-	return GPM.SafeInclude( GPM.Path( dir, filename ) )
+	CheckType(filename, 1, 'string', 3)
+	return SafeInclude( Path( dir, filename ) )
 end
 
 do
 
 	local AddCSLuaFile = AddCSLuaFile
 
-	function GPM.CL( filename, dir )
-		GPM.CheckType( filename, 1, 'string', 3 )
-		local path = GPM.Path( dir, filename )
+	function CL( filename, dir )
+		CheckType( filename, 1, 'string', 3 )
+		local path = Path( dir, filename )
 
 		if (SERVER) then
 			AddCSLuaFile( path )
 		else
-			return GPM.SafeInclude( path )
+			return SafeInclude( path )
 		end
 	end
 
-	function GPM.SH( filename, dir )
-		GPM.CheckType( filename, 1, 'string', 3 )
-		local path = GPM.Path( dir, filename )
+	function SH( filename, dir )
+		CheckType( filename, 1, 'string', 3 )
+		local path = Path( dir, filename )
 
 		if (SERVER) then
 			AddCSLuaFile( path )
 		end
 
-		return GPM.SafeInclude( path )
+		return SafeInclude( path )
 	end
 
 end
 
-GPM.SH('sh_include.lua', 'gpm')
--- GPM.Loader.ResolvePackagesFromDir('gpm/packages') -- Legacy
-GPM.Loader.ResolvePackagesFromDir('packages')
+-- Include Me :)
+SH('sh_logger.lua', 'gpm')
+SH('sh_semver.lua', 'gpm')
+SH('sh_author.lua', 'gpm')
+SH('sh_package.lua', 'gpm')
+SH('sh_loader.lua', 'gpm')
+
+-- Packages Loading
+Loader.Root( 'gpm/packages' )
+Loader.Root( 'packages' )
+Loader.ResolveAllPackages()

@@ -1,5 +1,6 @@
-local GPM = GPM
-GPM.Logger = GPM.Logger or {}
+module( "GPM", package.seeall )
+
+Logger = Logger or {}
 
 -- For colorable server console check Billy's Github
 -- https://github.com/WilliamVenner/gmsv_concolormsg
@@ -140,4 +141,4 @@ function mt:debug(message, ...)
 	--self:log('debug', message, ...)
 end
 
-setmetatable(GPM.Logger, { __call = function(_, ...) return mt.new(...) end })
+setmetatable(Logger, { __call = function(_, ...) return mt.new(...) end })

@@ -1,5 +1,6 @@
-local GPM = GPM
-GPM.Author = GPM.Author or {}
+module( "GPM", package.seeall )
+
+Author = Author or {}
 
 local function parseAuthor( str )
 	local name = str:match( '^(.-)%s?[<%(]' ) or str:match( '.+' )
@@ -64,4 +65,4 @@ do
 
 end
 
-setmetatable(GPM.Author, { __call = function(_, ...) return mt.new(...) end })
+setmetatable(Author, { __call = function(_, ...) return mt.new(...) end })

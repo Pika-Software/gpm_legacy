@@ -1,10 +1,11 @@
+module( "GPM", package.seeall )
+
 -- Semver lua parser. Based on https://github.com/kikito/semver.lua
 
 local assert = assert
 local type = type
 
-local GPM = GPM
-GPM.Semver = GPM.Semver or {}
+Semver = Semver or {}
 
 local isValidNumber
 do
@@ -380,7 +381,7 @@ function mt.new( major, minor, patch, prerelease, buildmeta )
 	}, mt)
 end
 
-setmetatable(GPM.Semver, {
+setmetatable(Semver, {
 	["__call"] = function( nan, ... )
 		return mt.new(...)
 	end

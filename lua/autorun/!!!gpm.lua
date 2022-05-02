@@ -1,33 +1,29 @@
-local text1 = ""
-function addLine(c)
-    text1 = text1 .. "\n\t" .. c
+module( "GPM", package.seeall )
+
+-- Package Manager Version
+Version = "2.0.0"
+
+local col1, col2 = Color(60, 125, 250), Color(250, 225, 60)
+function Logo()
+    local t=""local function l(c)t=t.."\n\t"..c end l([[    ______     ______   __    __]])l([[   /\  ___\   /\  == \ /\ "-./  \]])l([[   \ \ \__ \  \ \  _-/ \ \ \-./\ \]])l([[    \ \_____\  \ \_\    \ \_\ \ \_\]])l([[     \/_____/   \/_/     \/_/  \/_/]])MsgC(col1,t,"\n\n")
 end
 
-addLine("    ______     ______   __    __")
-addLine([[   /\  ___\   /\  == \ /\ "-./  \]])
-addLine([[   \ \ \__ \  \ \  _-/ \ \ \-./\ \]])
-addLine([[    \ \_____\  \ \_\    \ \_\ \ \_\]])
-addLine([[     \/_____/   \/_/     \/_/  \/_/]])
+local d, i = {col1, "\tgLua Package Manager by Pika Software\n\n"}, table.insert
+function AddDescription(tl,tx)i(d,col2)i(d,"\t"..tl..": ")i(d,col1)i(d,tx.."\n")end
+function Description()i(d,"\n")MsgC(unpack(d))end
 
-local color1, color2 = Color(60, 125, 250), Color(250, 225, 60)
-MsgC( color1, text1, "\n\n" )
+AddDescription( "GitHub","https://github.com/Pika-Software/gpm" )
+AddDescription( "Discord","https://discord.gg/3UVxhZj" )
+AddDescription( "Web Site","http://pika-soft.ru" )
 
-local text2, table_insert = {color1, "\tgLua Package Manager by Pika Software\n\n"}, table.insert
-local function addTag( title, text )
-    table_insert( text2, color2 )
-    table_insert( text2, "\t" .. title .. ": " )
-    table_insert( text2, color1 )
-    table_insert( text2, text .. "\n" )
-end
+AddDescription( "\n\tDevelopers", "Retro & PrikolMen:-b" )
+AddDescription( "Version", Version )
+AddDescription( "License", "MIT" )
 
-addTag("GitHub","https://github.com/Pika-Software/gpm")
-addTag("Discord","https://discord.gg/3UVxhZj")
-addTag("Web Site","http://pika-soft.ru")
-table_insert( text2,"\n" )
+Logo()
+Description()
 
-MsgC( unpack( text2 ) )
-
-if SERVER then
+if (SERVER) then
     AddCSLuaFile('gpm/sh_init.lua')
 end
 
