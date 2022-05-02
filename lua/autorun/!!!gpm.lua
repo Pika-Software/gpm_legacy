@@ -1,7 +1,7 @@
 module( "GPM", package.seeall )
 
 -- Package Manager Version
-Version = "2.0.0"
+Version = "2.0.1"
 
 local col1, col2 = Color(60, 125, 250), Color(250, 225, 60)
 function Logo()

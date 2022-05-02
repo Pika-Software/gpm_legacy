@@ -5,13 +5,11 @@ Author = Author or {}
 local function parseAuthor( str )
 	local name = str:match( '^(.-)%s?[<%(]' ) or str:match( '.+' )
 	local email = str:match( '<(.-)>' )
-	local discord = str:gsub( '%s*([%g]+)%s*(#)%s*([%d]+)%s*', '%1%2%3' )
 	local url = str:match( '%((.-)%)' )
 
 	return {
 		name = name,
 		email = email,
-		discord = discord,
 		url = url
 	}
 end
