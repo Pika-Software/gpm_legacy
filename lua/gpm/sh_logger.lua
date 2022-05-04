@@ -29,38 +29,6 @@ local levelColors = {
 	debug = colors.green,
 }
 
-local function formatTime()
-	return os.date('%H:%M:%S')
-end
-
-local function formatter( info )
-	local time = formatTime( info.timestamp )
-	local level = info.level:upper()
-	local id = ('[%s]:'):format( info.id )
-	local message = info.message:gsub('{(%d+)}', function(i)
-		i = tonumber( i )
-		return (i and info.args[i] ~= nil) and tostring( info.args[i] ) or ('{' .. i .. '}')
-	end)
-
-	return {
-		-- timestamp
-		colors.gray,
-		time, ' ',
-
-		-- level
-		levelColors[info.level] or levelColors['info'],
-		level, ' ',
-
-		-- id
-		(SERVER and colors.server) or (CLIENT and colors.client) or colors.menu,
-		id, ' ',
-
-		-- message
-		colors.white,
-		message, '\n',
-	}
-end
-
 local mt = {}
 mt.__index = mt
 
@@ -75,70 +43,90 @@ do
 		function mt.new(id)
 			assert( (id == nil) or type( id ) == "string", 'id must be a string' )
 
-			return setmetatable({
-				id = id,
-				formatter = formatter,
-			}, mt)
+			return setmetatable({["id"] = id}, mt)
+		end
+
+	end
+
+	do
+		local template = '%H:%M:%S'
+		local os_date = os.date
+		function mt:getTime()
+			return os_date( template )
+		end
+	end
+
+	do
+
+		local SERVER = SERVER
+		local CLIENT = CLIENT
+		local tonumber = tonumber
+		local tostring = tostring
+		local id_template = "[%s]:"
+
+		function mt:build( title, level, message, ... )
+			local args = {...}
+			return
+			-- Timestamp
+			colors.gray, self:getTime(), ' ',
+
+			-- Log Level
+			levelColors[ level ] or levelColors.info, level:upper(), ' ',
+
+			-- Title
+			(SERVER and colors.server) or (CLIENT and colors.client) or colors.menu, id_template:format( title ), ' ',
+
+			-- Message
+			colors.white, message:gsub('{(%d+)}', function( i )
+				i = tonumber( i )
+				return (i and args[i] ~= nil) and tostring( args[i] ) or ('{' .. i .. '}')
+			end), '\n'
 		end
 
 	end
 
 	do
 
-		local PrintTable = PrintTable
-		local tostring = tostring
-		local os_time = os.time
-		local unpack = unpack
-		local print = print
 		local MsgC = MsgC
+		local tostring = tostring
 
 		function mt:log( level, message, ... )
-			local info = {
-				id = self.id and tostring( self.id ) or 'unknown',
-				timestamp = os_time(),
-				level = level and tostring( level ) or 'info',
-				message = tostring( message ),
-				args = {...}
-			}
-
-			local msg
-			if type( self.formatter ) == "function" then
-				msg = self.formatter(info)
-			end
-
-			if type( msg ) == "table" then
-				MsgC( unpack( msg ) )
-			elseif (msg ~= nil) and (msg ~= false) then
-				print( msg )
-			elseif (msg == false) then
-				return
-			else
-				PrintTable( info )
-			end
+			MsgC( self:build( self.id and tostring( self.id ) or 'unknown', level and tostring( level ) or 'info', tostring( message ), ... ) )
 		end
 
 	end
 
 end
 
-function mt:fatal(message, ...)
-	self:log('fatal', message, ...)
+function mt:fatal( message, ... )
+	self:log( 'fatal', message, ... )
 end
 
-function mt:error(message, ...)
-	self:log('error', message, ...)
+function mt:error( message, ... )
+	self:log( 'error', message, ... )
 end
 
-function mt:warn(message, ...)
-	self:log('warn', message, ...)
+function mt:warn( message, ... )
+	self:log( 'warn', message, ... )
 end
 
-function mt:info(message, ...)
-	self:log('info', message, ...)
+function mt:info( message, ... )
+	self:log( 'info', message, ... )
 end
 
-function mt:debug(message, ...)
-	--self:log('debug', message, ...)
+do
+
+	local developer = cvars.Number( "developer", 0 ) ~= 0
+	cvars.AddChangeCallback("developer", function( name, old, new )
+		developer = new ~= "0"
+	end)
+
+	function mt:debug( message, ... )
+		if (developer) then
+			self:log( 'debug', message, ... )
+		end
+	end
+
 end
 
-setmetatable(Logger, { __call = function(_, ...) return mt.new(...) end })
+setmetatable( Logger, { __call = function(_, ...) return mt.new(...) end } )
