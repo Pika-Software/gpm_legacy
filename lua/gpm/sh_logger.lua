@@ -1,5 +1,17 @@
 module( "GPM", package.seeall )
 
+/*
+
+	local logger = GPM.Logger( title )
+
+	logger:fatal( message, args )
+	logger:error( message, args )
+	logger:warn( message, args )
+	logger:info( message, args )
+	logger:debug( message, args )
+
+*/
+
 Logger = Logger or {}
 
 -- For colorable server console check Billy's Github
@@ -34,66 +46,65 @@ mt.__index = mt
 
 do
 
+	local assert = assert
 	local type = type
 
-	do
-
-		local assert = assert
-
-		function mt.new(id)
-			assert( (id == nil) or type( id ) == "string", 'id must be a string' )
-
-			return setmetatable({["id"] = id}, mt)
-		end
-
+	function mt.new( title )
+		assert( (title == nil) or type( title ) == "string", 'title must be a string' )
+		return setmetatable({["title"] = title}, mt)
 	end
 
-	do
-		local template = '%H:%M:%S'
-		local os_date = os.date
-		function mt:getTime()
-			return os_date( template )
-		end
+end
+
+do
+	local template = '%H:%M:%S'
+	local os_date = os.date
+	function mt:getTime()
+		return os_date( template )
+	end
+end
+
+do
+	local side_color = (SERVER and colors.server) or (CLIENT and colors.client) or colors.menu
+	function mt:color()
+		return side_color
+	end
+end
+
+do
+
+	local tonumber = tonumber
+	local tostring = tostring
+	local title_template = "[%s]:"
+
+	function mt:build( title, level, message, ... )
+		local args = {...}
+		return
+		-- Timestamp
+		colors.gray, self:getTime(), ' ',
+
+		-- Log Level
+		levelColors[ level ] or levelColors.info, level:upper(), ' ',
+
+		-- Title
+		self:color(), title_template:format( title ), ' ',
+
+		-- Message
+		colors.white, message:gsub('{(%d+)}', function( i )
+			i = tonumber( i )
+			return (i and args[i] ~= nil) and tostring( args[i] ) or ('{' .. i .. '}')
+		end), '\n'
 	end
 
-	do
+end
 
-		local SERVER = SERVER
-		local CLIENT = CLIENT
-		local tonumber = tonumber
-		local tostring = tostring
-		local id_template = "[%s]:"
+do
 
-		function mt:build( title, level, message, ... )
-			local args = {...}
-			return
-			-- Timestamp
-			colors.gray, self:getTime(), ' ',
+	local MsgC = MsgC
+	local tostring = tostring
 
-			-- Log Level
-			levelColors[ level ] or levelColors.info, level:upper(), ' ',
-
-			-- Title
-			(SERVER and colors.server) or (CLIENT and colors.client) or colors.menu, id_template:format( title ), ' ',
-
-			-- Message
-			colors.white, message:gsub('{(%d+)}', function( i )
-				i = tonumber( i )
-				return (i and args[i] ~= nil) and tostring( args[i] ) or ('{' .. i .. '}')
-			end), '\n'
-		end
-
-	end
-
-	do
-
-		local MsgC = MsgC
-		local tostring = tostring
-
-		function mt:log( level, message, ... )
-			MsgC( self:build( self.id and tostring( self.id ) or 'unknown', level and tostring( level ) or 'info', tostring( message ), ... ) )
-		end
-
+	function mt:log( level, message, ... )
+		MsgC( self:build( self.title and tostring( self.title ) or 'unknown', level and tostring( level ) or 'info', tostring( message ), ... ) )
 	end
 
 end
