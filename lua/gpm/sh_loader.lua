@@ -58,7 +58,7 @@ do
 			if file_Exists( filename, "LUA" ) then
 				assert( CLIENT or file.Size( filename, "LUA" ) > 0, filename .. " is empty!" )
 
-				if (CLIENT) and (package.onlyserver ~= true) then
+				if (CLIENT) and (package.onlyserver == true) then
 					return
 				end
 
