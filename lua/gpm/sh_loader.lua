@@ -6,7 +6,6 @@ local type = type
 Loader = Loader or {}
 Packages = Packages or {}
 
-
 do
 
 	local log = Logger( 'GPM' )
@@ -59,6 +58,20 @@ do
 			if file_Exists( filename, "LUA" ) then
 				assert( CLIENT or file.Size( filename, "LUA" ) > 0, filename .. " is empty!" )
 
+				if (CLIENT) and (package.onlyserver ~= true) then
+					return
+				end
+
+				if (SERVER) then
+
+					AddCSLuaFile( filename )
+
+					if (package.onlyclient == true) then
+						return
+					end
+
+				end
+
 				local func = CompileFile( filename )
 				assert( type( func ) == "function", "Attempt to compile package " .. packageName .. " failed!" )
 
@@ -80,10 +93,6 @@ do
 
 					package.name = package.name or packageName
 					package.root = path
-
-					if (SERVER) and not package.onlyserver then
-						AddCSLuaFile( filename )
-					end
 
 					return Package( package )
 				end
@@ -289,7 +298,7 @@ do
 
 end
 
-function Loader.RunPackage(pkg)
+function Loader.RunPackage( pkg )
 	if not pkg.root then
 		pkg.state = 'failed'
 		log:error( 'package with unknown root? i do not know how to run package.' )
@@ -314,7 +323,17 @@ function Loader.RunPackage(pkg)
 
 	pkg.state = 'running'
 
-	local ok, err = SH( path )
+	-- PrintTable( pkg )
+
+	local ok, err = false, nil
+	if (pkg.onlyserver == true) then
+		ok, err = SV( path )
+	elseif (pkg.onlyclient == true) then
+		ok, err = CL( path )
+	else
+		ok, err = SH( path )
+	end
+
 	if not ok then
 		pkg.state = 'failed'
 		log:error( '{1} package run error:\n{2}', pkg, err )
@@ -329,6 +348,10 @@ function Loader.ResolvePackage( pkg, packages )
 	if (pkg.state == 'loaded') then
 		log:debug( 'package {1} already loaded.', pkg )
 		return true
+	end
+
+	if (pkg.onlyserver == true) and (CLIENT) then
+		return
 	end
 
 	pkg.state = 'resolving'
