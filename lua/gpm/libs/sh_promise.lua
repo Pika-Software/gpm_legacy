@@ -296,9 +296,8 @@ function Promise.all(promises)
 	local onFulfill = function(i)
 		return function(result)
 			if not new_promise:isPending() then return end
-
 			results[i] = result
-			callCount = 1
+			callCount = callCount + 1
 			
 			if callCount == lenght then
 				new_promise:resolve( results )
