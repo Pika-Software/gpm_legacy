@@ -1,5 +1,8 @@
 module( "GPM", package.seeall )
 
+-- This module depreacted
+return
+
 /*
 
 	local logger = GPM.Logger( title )

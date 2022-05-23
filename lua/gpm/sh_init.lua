@@ -102,6 +102,14 @@ do
 
 end
 
+-- Core Libs
+SH("sh_helpers.lua", "gpm/libs")
+SH("sh_logger.lua", "gpm/libs")
+SH("sh_promise.lua", "gpm/libs")
+SH("sh_concommands.lua", "gpm/libs")
+
+if true then return end
+
 -- Include Me :)
 SH('sh_logger.lua', 'gpm')
 SH('sh_semver.lua', 'gpm')
