@@ -1,8 +1,125 @@
 --- A Lua implementation of Promise/A+
 module( "GPM", package.seeall )
 
-local promise = {}
-promise.__index = promise
+--[[
+	- Promise documentation
+
+	List of promise functions:
+		promise:getState() -- Returns state of promise (pending, fulfilled or rejected)
+		promise:isPending()
+		promise:isFulfilled()
+		promise:isRejected()
+
+		promise:getResult() -- Returns result of Promise if not pending (fulfilled value or reason why rejected)
+
+		promise:callback([resolve, reject]) -- Adds callback for Promise. (resolve for fulfillment, reject for rejectment)
+		                                       resolve and reject must be functions (but they are optional).
+		                                       Same as `then` function in Promise/A+ specification
+		                                       See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then
+		promise:try(resolve) -- Same as :callback, but only takes resolve function
+		promise:catch(reject) -- Same as :callback, but only takes reject function
+
+		promise:await() -- Waits promise response, 
+		                   and returns value when fullfilled, 
+		                   or throws error when rejected
+		                   NB! Works only in async functions! See GPM.Promise.async
+
+		-- You can use functions below, but you shouldn't
+		promise:resolve( value ) -- Fulfills promise with given value (see https://promisesaplus.com/#the-promise-resolution-procedure)
+		promise:reject( value ) -- Rejects promise with given value
+	
+	Global functions:
+		GPM.async( func ) -- Wraps function, and returns async function
+		GPM.await( promise ) -- Same as promise:await()
+
+		GPM.Promise( func ) -- Creates a promise, runs function with `resolve` and `reject` callbacks and returns the promise. See examples below
+
+		GPM.Promise.hasCallback( obj )
+		GPM.Promise.isPromise( obj )
+		GPM.Promise.isAwaitable( obj )
+
+		GPM.Promise.async( func ) -- Same as GPM.async( func )
+		GPM.Promise.await( promise ) -- Same as promise:await()
+
+		GPM.Promise.resolve( value ) -- Returns a promise, that fulfilled with given value
+		GPM.Promise.reject( reason ) -- Returns a promise, that rejected with given reason
+
+		GPM.Promise.delay( time_in_seconds ) -- Returns a promise, that will resolve after given time in seconds.
+		GPM.Promise.all( promises ) -- Returns a promise, that will return an array of results of promises in given array of promises. See examples below
+		GPM.Promise.race( promises ) -- Returns a promise, that will return first result of given promises
+
+	Examples:
+		Example of async http function
+		```
+			function HTTPRequest(url, headers)
+				return GPM.Promise(function(resolve, reject)
+					local onSuccess = function(body, size, headers, code)
+						resolve({
+							body = body,
+							size = size,
+							headers = headers,
+							code = code,
+						})
+					end
+
+					local onFailure = function(reason)
+						reject(reason)
+					end
+
+					http.Fetch(url, onSuccess, onFailure, headers)
+				end)
+			end
+
+			HTTPRequest("https://google.com"):try(function(data)
+				PrintTable(data) 
+					-- body = "..."
+					-- size = 12345
+					-- headers = { ... }
+					-- code = 200
+			end)
+		```
+
+		Example of using HTTPRequest in async function
+		```
+			local async_func = GPM.async(function(url)
+				local data = HTTPRequest( url ):await()
+
+				print(data.code) -- 200, 404 or etc.
+				return data.code
+			end)
+
+			-- Running our async function
+			local p = async_func("https://google.com")
+
+			print(p) -- Promise 0x012345678 {<pending>}
+
+			p:try(function(code) print(code) end) -- 200
+		```
+
+		Example of parsing http request in json
+		```
+			function JSONRequest(url, headers)
+				return HTTPRequest(url, headers):try(function(data)
+					return util.JSONToTable( data.body )
+				end)
+			end
+
+			JSONRequest("https://httpbin.org/get"):try(function(data)
+				PrintTable(data)
+					-- headers = { ... }
+					-- args = {}
+					-- origin = "xxx.xxx.xxx.xxx"
+					-- url = "https://httpbin.org/get"
+			end)
+		```
+
+		This promise library is similar to Javascript promises,
+		only differences is `.then` changed to `:callback` (see also `:try`),
+		and there is no `.finally` function.
+
+		Also that is missing, are Promise.allSettled and Promise.any, because i don't make it, and maybe will make them in future
+--]]
+local promise = CreateClass( "Promise" )
 
 function promise:getState()
 	return self.state or "pending"
@@ -30,10 +147,7 @@ function promise:__tostring()
 	return ("Promise %p {<%s>: %s}"):format(self, self:getState(), ValueToString( self:getResult() ))
 end
 
-function promise:_process()
-	if self._processing then return end
-	if self:isPending() then return end
-
+function promise:_resolve_queue()
 	local fullfillFallback = function(value)
 		return value
 	end
@@ -42,42 +156,50 @@ function promise:_process()
 		error(reason)
 	end
 
+	if #self._queue == 0 and self:isRejected() then
+		ErrorNoHalt("Unhandled promise error: ", self:getResult(), "\n\n")
+		return
+	end
+
+	-- while queue is not empty
+	while #self._queue > 0 do
+		local queuedPromise = table.remove(self._queue, 1)
+
+		local handler
+		if self:isFulfilled() then
+			handler = queuedPromise._onFulfillHandler or fullfillFallback
+		elseif self:isRejected() then
+			handler = queuedPromise._onRejectHandler or rejectFallback
+		end
+
+		local result
+		local ok, result = pcall(function()
+			return handler( self:getResult() )
+		end)
+
+		if ok then
+			-- Running resolve with result, that handler gived to us
+			queuedPromise:resolve( result )
+		else
+			-- Remove error from default handler
+			if result then
+				result = string.gsub(result, "addons/gpm/lua/gpm/libs/sh_promise.lua:[^%s]+ ", "")
+			end
+
+			queuedPromise:_reject(result)
+		end
+	end
+end
+
+function promise:_process()
+	if self._processing then return end
+	if self:isPending() then return end
+
 	self._processing = true
 	NextTick(function()
 		self._processing = false
 
-		if #self._queue == 0 and self:isRejected() then
-			ErrorNoHalt("Unhandled promise error: ", self:getResult(), "\n\n")
-			return
-		end
-
-		-- while queue is not empty
-		while #self._queue > 0 do
-			local queuedPromise = table.remove(self._queue, 1)
-	
-			local handler
-			if self:isFulfilled() then
-				handler = queuedPromise._onFulfillHandler or fullfillFallback
-			elseif self:isRejected() then
-				handler = queuedPromise._onRejectHandler or rejectFallback
-			end
-	
-			local result
-			local ok = xpcall(function()
-				result = handler( self:getResult() )
-			end, function(err)
-				-- Remove error from default handler
-				err = string.gsub(err, "addons/gpm/lua/gpm/libs/sh_promise.lua:[^%s]+ ", "")
-
-				queuedPromise:_reject(err)
-			end)
-
-			if ok then
-				-- Running resolve with result, that handler gived to us
-				queuedPromise:resolve( result )
-			end
-
-		end
+		self:_resolve_queue()
 	end)
 end
 
@@ -100,6 +222,7 @@ function promise:_reject(reason)
 	self:_transition("rejected", reason)
 end
 
+---
 function promise:resolve(value)
 	if promise == value then
 
@@ -142,6 +265,12 @@ function promise:resolve(value)
 		self:_fulfill(value)
 
 	end
+end
+
+---
+function promise:reject(value)
+	-- yes, this is _reject alias
+	self:_reject(value)
 end
 
 function promise:callback(onFulfilled, onRejected)
@@ -191,7 +320,7 @@ function promise:await()
 end
 
 function promise.new(func)
-	local obj = setmetatable({}, promise)
+	local obj = InheritClass( promise )
 
 	obj.state = "pending"
 	obj._queue = {}
@@ -200,7 +329,7 @@ function promise.new(func)
 	obj._onRejectHandler = nil
 
 	-- Running function, if it is given
-	if func then
+	if isfunction(func) then
 		local resolve = function(value)
 			obj:resolve(value)
 		end
@@ -240,9 +369,9 @@ function Promise.async(func)
 		local ok, result = pcall(func, ...)
 
 		if ok then
-			p:_fulfill( result )
+			p:resolve( result )
 		else
-			p:_reject( result )
+			p:reject( result )
 		end
 	end
 
@@ -342,3 +471,8 @@ function Promise.race(promises)
 
 	return new_promise
 end
+
+-- And just aliases
+
+async = Promise.async
+await = Promise.await
