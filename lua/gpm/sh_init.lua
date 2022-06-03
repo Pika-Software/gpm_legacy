@@ -14,7 +14,7 @@ do
 		local fname = dinfo and dinfo.name or 'func'
 		local serror = ('bad argument #%d to \'%s\' (%s expected, got %s)'):format( narg, fname, tname, type( value ) )
 
-		error(serror, errorlevel or 2)
+		error(serror, errorlevel or 3)
 	end
 
 end
@@ -104,9 +104,22 @@ end
 
 -- Core Libs
 SH("sh_helpers.lua", "gpm/libs")
+SH("init.lua", "gpm/classes")
+
+-- Other libs, i guess
 SH("sh_logger.lua", "gpm/libs")
 SH("sh_promise.lua", "gpm/libs")
 SH("sh_concommands.lua", "gpm/libs")
+
+-- Classes
+SH("package.lua", "gpm/classes")
+
+-- Loaders
+SH("base.lua", "gpm/loaders")
+SH("local.lua", "gpm/loaders")
+
+-- Adding basic paths for local packages
+hook.Run( "GPM.InitializePaths" )
 
 if true then return end
 
