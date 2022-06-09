@@ -106,12 +106,12 @@ end
 SH("sh_helpers.lua", "gpm/libs")
 SH("init.lua", "gpm/classes")
 
--- Other libs, i guess
 SH("sh_logger.lua", "gpm/libs")
-SH("sh_promise.lua", "gpm/libs")
 SH("sh_concommands.lua", "gpm/libs")
+SH("sh_promise.lua", "gpm/libs")
 
 -- Classes
+SH("rule.lua", "gpm/classes")
 SH("package.lua", "gpm/classes")
 
 -- Loaders
