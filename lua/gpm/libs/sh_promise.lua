@@ -114,10 +114,10 @@ module( "GPM", package.seeall )
 		```
 
 		This promise library is similar to Javascript promises,
-		only differences is `.then` changed to `:callback` (see also `:try`),
+		only differences is `.then` changed to `:callback` (`:try` is an alias to `:callback` without onReject callback),
 		and there is no `.finally` function.
 
-		Also that is missing, are Promise.allSettled and Promise.any, because i don't make it, and maybe will make them in future
+		Also that is missing, are Promise.allSettled and Promise.any, because i don't want to make it, and maybe will make them in future
 --]]
 local promise = CreateClass( "Promise" )
 
