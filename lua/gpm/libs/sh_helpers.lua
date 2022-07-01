@@ -93,3 +93,20 @@ function IsDir( path, gamePath )
 
 	return string.EndsWith( path, folders[1] )
 end
+
+--- Checks if developer mode enabled
+function IsDevelopment()
+	return cvars.Bool( "gpm_developer" )
+end
+
+--- .NET like formatting
+-- @see https://wiki.facepunch.com/gmod/Patterns
+function format( fmt, ... )
+	local args = { ... }
+
+	local result = fmt:gsub("{(%d+)}", function(i)
+		return tostring( args[ tonumber(i) + 1 ] )
+	end)
+
+	return result
+end
