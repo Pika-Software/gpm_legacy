@@ -7,10 +7,27 @@ end
 
 module( "GPM", package.seeall )
 
-local logger = {}
+local logger = CreateClass("Logger")
 logger.__index = logger
 
+function logger:__index(key)
+	if logger[key] ~= nil then
+		return logger[key]
+	end
+
+	for _, t in ipairs(self.levels) do
+		if t[1] == key then
+			self[key] = function(self, ...)
+				return self:log(key, ...)
+			end
+
+			return self[key]
+		end
+	end
+end
+
 -- Colors
+-- @todo need more colors
 logger.colors = {
 	["white"] = Color( 225, 225, 225 ),
 	["gray"] = Color( 128, 128, 128 ),
@@ -186,27 +203,39 @@ end
 -- 	MsgC( unpack( args ) )
 -- end
 
-function logger:error( ... )
-	self:log("error", ...)
-end
+-- function logger:error( ... )
+-- 	self:log("error", ...)
+-- end
 
-function logger:info( ... )
-	self:log("info", ...)
-end
+-- function logger:info( ... )
+-- 	self:log("info", ...)
+-- end
 
-function logger:warn( ... )
-	self:log("warn", ...)
-end
+-- function logger:warn( ... )
+-- 	self:log("warn", ...)
+-- end
 
-function logger:debug( ... )
-	self:log("debug", ...)
-end
+-- function logger:debug( ... )
+-- 	self:log("debug", ...)
+-- end
 
 ---
 -- @usage local perf = logger:timeLog()
 -- @usage perf:log("info", "Hello World!")
 function logger:timeLog()
-	return {
+	local indexer = function(self, key)
+		for _, t in ipairs(self.logger.levels) do
+			if t[1] == key then
+				self[key] = function(self, ...)
+					return self:log(key, ...)
+				end
+	
+				return self[key]
+			end
+		end
+	end
+
+	return setmetatable({
 		logger = self,
 		start_time = SysTime(),
 		done = function(self, params)
@@ -217,7 +246,7 @@ function logger:timeLog()
 		log = function(self, level, ...)
 			self:done({ level = level, args = {...} })
 		end
-	}
+	}, { __index = indexer })
 end
 
 --- Creates new logger from existing logger
@@ -229,7 +258,7 @@ function logger:inherit( name )
 		self.__index = self
 	end
 
-	local new_logger = setmetatable({}, self)
+	local new_logger = InheritClass( self )
 
 	new_logger.name = name
 
