@@ -112,13 +112,15 @@ SH("sh_promise.lua", "gpm/libs")
 
 -- Classes
 SH("rule.lua", "gpm/classes")
+SH("schema.lua", "gpm/classes")
+SH("package_metadata.lua", "gpm/classes")
 SH("package.lua", "gpm/classes")
 
 -- Loaders
 SH("base.lua", "gpm/loaders")
 SH("local.lua", "gpm/loaders")
 
--- Adding basic paths for local packages
+-- Adding basic paths for local packages and modules
 hook.Run( "GPM.InitializePaths" )
 
 if true then return end

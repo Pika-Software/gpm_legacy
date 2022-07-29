@@ -1,68 +1,132 @@
 
 module( "GPM", package.seeall )
 
+local function getValueLength( value )
+	return isnumber(value) and value or #value
+end
+
 local rule = CreateClass("Rule")
 
-function rule:validateRequired( value )
-	if self.valueRequired == false then return true end
+rule.option_validators = {
+	["required"] 	= function( value ) return isbool( value ) 							end,
+	["type"] 		= function( value ) return isstring( value ) or istable( value ) 	end,
+	["length"] 		= function( value ) return isnumber( value ) or istable( value ) 	end,
+	["enum"] 		= function( value ) return istable( value ) 						end,
+	["match"] 		= function( value ) return isstring( value ) 						end,
+	["validator"]	= function( value ) return isfunction( value ) 						end
+}
 
-	return value ~= nil and value ~= ""
-end
+rule.validators = {
+	["required"] = function( value, options )
+		if options.required == false then return true end
 
-function rule:validateType( value )
-	if value == nil then return true end
+		return value ~= nil and value ~= ""
+	end,
 
-	if isstring( self.valueType ) then
-		return type( value ) == self.valueType
-	end
+	["type"] = function( value, options )
+		if value == nil then return true end
 
-	return table.HasValue( self.valueType, type(value) )
-end
+		-- value_type can be string or table
+		if isstring( options.type ) then
+			return type( value ) == options.type
+		end
+	
+		return table.HasValue( options.type, type(value) )
+	end,
 
-function rule:validateLength( value )
-	if value == nil then return true end
+	["length"] = function( value, options )
+		if value == nil then return true end
 
-	local length = isnumber(value) and value or #value
+		local length = getValueLength( value )
+	
+		if isnumber(options.length) then
+			return options.length == length
+		end
+	
+		local min = options.length.min
+		local max = options.length.max
 
-	if isnumber(self.valueLength) then
-		return length == self.valueLength
-	end
+		if min and length < min then return false end
+		if max and length > max then return false end
+		return true
+	end,
 
-	local min = self.valueLength.min
-	local max = self.valueLength.max
+	["enum"] = function( value, options )
+		if value == nil then return true end
 
-	if min and length < min then return false end
-	if max and length > max then return false end
-	return true
-end
+		return table.HasValue( options.enum, value )
+	end,
 
-function rule:validateEnum( value )
-	if value == nil then return true end
+	["match"] = function( value, options )
+		if value == nil then return true end
 
-	return table.HasValue( self.valueEnum, value )
-end
+		return string.match( value, options.match ) ~= nil
+	end,
 
-function rule:validateMatch( value )
-	if value == nil then return true end
+	["validator"] = function( value, options )
+		if value == nil then return true end
 
-	return string.match( value, self.valuePattern ) ~= nil
-end
+		return options.validator( value )
+	end,
+}
 
-function rule:validateValidator( value )
-	if value == nil then return true end
+rule.messages = {
+	["required"] = "required",
 
-	return self.valueValidator( value )
-end
+	["type"] = function( value, options )
+		local expected = istable( options.type ) and table.concat( options.type, " or " ) or options.type
 
---- Weird thing
+		return format("expected {0} type, got {1}", expected, type(value))
+	end,
+
+	["length"] = function( value, options )
+		local length = getValueLength( value )
+
+		if isnumber( options.length ) then
+			return format("expected length {0}, got {1}", options.length, length)
+		end
+
+		local min = options.length.min and "> " .. options.length.min
+		local max = options.length.max and "< " .. options.length.max
+
+		return format("expected length {0}, got {1}", table.concat({min, max}, " and "), length)
+	end,
+
+	["enum"] = function( value, options )
+		local enum = {}
+		for _, v in ipairs(options.enum) do
+			table.insert(enum, ValueToString(v))
+		end
+
+		return format("expected value from [{0}]", table.concat(enum, ", "))
+	end,
+
+	["match"] = function( value, options )
+		return format("the value isn't matching pattern '{1}'", value, options.match)
+	end,
+
+	["validator"] = "the value didn't passed a custom validator"
+}
+
 function rule:validate( value )
-	if not self:validateRequired( value ) then return false end
+	for key, validate in pairs( self.validators ) do
+		if self.options[key] ~= nil then
+			local ok = validate( value, self.options )
 
-	if self.valueType and not self:validateType( value ) then return false end
-	if self.valueLength and not self:validateLength( value ) then return false end
-	if self.valueEnum and not self:validateEnum( value ) then return false end
-	if self.valuePattern and not self:validateMatch( value ) then return false end
-	if self.valueValidator and not self:validateValidator( value ) then return false end
+			if not ok then
+				-- That's looking messy
+				local message = isfunction( self.messages[key] ) and
+					self.messages[key]( value, self.options ) or -- Get message from function
+					isstring( self.messages[key] ) and self.messages[key] -- Message from string
+
+				if message then
+					return false, format("invalid value '{0}' ({1})", value, message)
+				end
+
+				return false, format("invalid value '{0}' (failed when validating '{1}')", value, key)
+			end
+		end
+	end
 
 	return true
 end
@@ -70,7 +134,7 @@ end
 --- Creates new rule
 -- list of available options: 
 --		required: bool -- checks if value is not nil or empty string
---		type: string -- checks if type equals to given type
+--		type: string | { ...string } -- checks if type equals to given type
 --		length: number | { min: number, max: number } -- checks if length (or number) are equal to number, or in range
 --		enum: { ...any } -- checks if value exists in this enum
 --		match: Pattern -- Checks if string matches pattern. See https://wiki.facepunch.com/gmod/Patterns
@@ -80,31 +144,73 @@ end
 function rule.new( options )
 	local new_rule = InheritClass( rule )
 
-	if isbool( options.required ) then
-		new_rule.valueRequired = options.required
-	end
+	new_rule.options = {}
 
-	if isstring( options.type ) or istable( options.type ) then
-		new_rule.valueType = options.type
-	end
+	-- Here we parsing options
+	for key, validate in pairs( new_rule.option_validators ) do -- Getting every option validator
+		local value = options[key] -- Getting value from options
 
-	if isnumber( options.length ) or istable( options.length ) then
-		new_rule.valueLength = options.length
-	end
-
-	if istable( options.enum ) then
-		new_rule.valueEnum = options.enum
-	end
-
-	if isstring( options.match ) then
-		new_rule.valuePattern = options.match
-	end
-
-	if isfunction( options.validator ) then
-		new_rule.valueValidator = options.validator
+		if validate( value ) then -- Checking if value from options satisfies our requirements (sounds weird)
+			new_rule.options[key] = value
+		end
 	end
 
 	return new_rule
 end
 
 Rule = setmetatable({}, { __call = function(_, ...) return rule.new(...) end })
+
+--- Checks if given value are Rule
+function IsRule( rule )
+	return istable(rule) and rule.Name == "Rule"
+end
+
+-- Rule tests. Works only in development.
+if IsDevelopment() then
+	local test_rule
+
+	test_rule = Rule({ required = true, type = "string" })
+	assert( test_rule:validate("Hello") == true )
+	assert( test_rule:validate( nil ) == false )
+	assert( test_rule:validate( 1 ) == false )
+
+	print( test_rule:validate( 1 ) )
+
+	test_rule = Rule({ required = false, type = { "table", "number" } })
+	assert( test_rule:validate( {} ) == true )
+	assert( test_rule:validate( nil ) == true )
+	assert( test_rule:validate( 1 ) == true )
+	assert( test_rule:validate( "str" ) == false )
+
+	test_rule = Rule({ length = 1 })
+	assert( test_rule:validate( { "value" } ) == true )
+	assert( test_rule:validate( 1 ) == true )
+	assert( test_rule:validate( "g" ) == true )
+	assert( test_rule:validate( "good" ) == false )
+	assert( test_rule:validate( 3 ) == false )
+
+	test_rule = Rule({ length = { min = 1, max = 3 } })
+	assert( test_rule:validate( { "value" } ) == true )
+	assert( test_rule:validate( 5 ) == false )
+	assert( test_rule:validate( "hello world" ) == false )
+	assert( test_rule:validate( "wrd" ) == true )
+	assert( test_rule:validate( 2 ) == true )
+
+	test_rule = Rule({ enum = { "hello", "world" } })
+	assert( test_rule:validate( "hello" ) == true )
+	assert( test_rule:validate( "world" ) == true )
+	assert( test_rule:validate( "hello world" ) == false )
+
+	test_rule = Rule({ match = "^[%d]+$" })
+	assert( test_rule:validate( "string" ) == false )
+	assert( test_rule:validate( "123" ) == true )
+	assert( test_rule:validate( 9 ) == true )
+	assert( test_rule:validate( "-123" ) == false )
+
+	test_rule = Rule({ validator = function( value, opts ) return not value end })
+	assert( test_rule:validate( "string" ) == false )
+	assert( test_rule:validate( 7632 ) == false )
+	assert( test_rule:validate( nil ) == true )
+	assert( test_rule:validate( false ) == true )
+end
+
