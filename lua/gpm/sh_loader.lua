@@ -1,4 +1,4 @@
-module( "GPM", package.seeall )
+module( 'GPM', package.seeall )
 
 local file_Exists = file.Exists
 local type = type
@@ -9,9 +9,9 @@ Packages = Packages or {}
 do
 
 	local log = Logger( 'GPM' )
-	concommand.Add("gpm_list", function()
+	concommand.Add('gpm_list', function()
 		for name, package in pairs( Packages ) do
-			log:info( "{1} - {2}", package, package.description == "" and "No Description" or package.description )
+			log:info( '{1} - {2}', package, package.description == '' and 'No Description' or package.description )
 		end
 	end)
 
@@ -29,7 +29,7 @@ do
 	local ipairs = ipairs
 
 	local function getPackagesPathsFromDir( root )
-		local files, dirs = file_Find( Path( root, '*' ), 'LUA' )
+		local _, dirs = file_Find( Path( root, '*' ), 'LUA' )
 
 		local packages = {}
 		for num, dir in ipairs( dirs ) do
@@ -55,25 +55,18 @@ do
 		function getPackageFromPath( path )
 			local packageName = path:GetFileFromFilename()
 			local filename = Path( path, 'package.lua' )
-			if file_Exists( filename, "LUA" ) then
-				assert( CLIENT or file.Size( filename, "LUA" ) > 0, filename .. " is empty!" )
+			if file_Exists( filename, 'LUA' ) then
+				assert( CLIENT or file.Size( filename, 'LUA' ) > 0, filename .. ' is empty!' )
 
-				if (CLIENT) and (package.onlyserver == true) then
-					return
-				end
+				if CLIENT and package.onlyserver then return end
 
-				if (SERVER) then
-
+				if SERVER then
 					AddCSLuaFile( filename )
-
-					if (package.onlyclient == true) then
-						return
-					end
-
+					if package.onlyclient then return end
 				end
 
 				local func = CompileFile( filename )
-				assert( type( func ) == "function", "Attempt to compile package " .. packageName .. " failed!" )
+				assert( type( func ) == 'function', 'Attempt to compile package ' .. packageName .. ' failed!' )
 
 				local env = {}
 				setfenv( func, env )
@@ -81,7 +74,7 @@ do
 				local ok, data = pcall( func )
 				if (ok) then
 					local package = {}
-					if type( data ) == "table" then
+					if type( data ) == 'table' then
 						package = data
 					else
 						package = env
@@ -97,10 +90,10 @@ do
 					return Package( package )
 				end
 
-				Error( "Package '" .. packageName .. "' сontains an error!" )
+				Error( 'Package \'' .. packageName .. '\' contains an error!' )
 			end
 
-			Error( filename .. " not found!" )
+			Error( filename .. ' not found!' )
 		end
 
 	end
@@ -119,17 +112,17 @@ do
 
 			if (root == nil) then
 				for num, root in ipairs( roots ) do
-					log:info( 'Resolving packages from "{1}"...', root )
+					log:info( 'Resolving packages from \'{1}\'', root )
 					dirs = table_Merge( dirs, getPackagesPathsFromDir( root ) )
 				end
 			else
-				log:info( 'Resolving packages from "{1}"...', root )
+				log:info( 'Resolving packages from \'{1}\'', root )
 				dirs = getPackagesPathsFromDir( root )
 			end
 
 			for num, dir in ipairs( dirs ) do
 				local ok, package = xpcall( getPackageFromPath, function( err )
-					log:error( 'failed to load package from "{1}":', dir )
+					log:error( 'failed to load package from \'{1}\':', dir )
 					ErrorNoHaltWithStack( err )
 				end, dir )
 
@@ -275,9 +268,9 @@ do
 	end
 
 	function Loader.FindPackage( name, packages )
-		if type( name ) ~= "string" then return end
+		if type( name ) ~= 'string' then return end
 
-		if type( packages ) == "table" then
+		if type( packages ) == 'table' then
 			for pkg_name, pkg_info in pairs( packages ) do
 				if (pkg_name == name) then
 					log:debug( 'found package {1} in custom registry', pkg_info )
@@ -313,7 +306,7 @@ function Loader.RunPackage( pkg )
 		path = main
 	else
 		pkg.state = 'failed'
-		log:error( 'cannot find {1} package main "{2}" (file does not exist)', pkg, main )
+		log:error( 'cannot find {1} package main \'{2}\' (file does not exist)', pkg, main )
 		return false
 	end
 
@@ -345,14 +338,12 @@ function Loader.RunPackage( pkg )
 end
 
 function Loader.ResolvePackage( pkg, packages )
-	if (pkg.state == 'loaded') then
+	if pkg.state == 'loaded' then
 		log:debug( 'package {1} already loaded.', pkg )
 		return true
 	end
 
-	if (pkg.onlyserver == true) and (CLIENT) then
-		return
-	end
+	if pkg.onlyserver and CLIENT then return end
 
 	pkg.state = 'resolving'
 	local ok = resolveDependencies( pkg, packages ) and

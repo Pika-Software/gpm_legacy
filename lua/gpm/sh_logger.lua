@@ -1,4 +1,4 @@
-module( "GPM", package.seeall )
+module( 'GPM', package.seeall )
 
 /*
 
@@ -17,8 +17,8 @@ Logger = Logger or {}
 -- For colorable server console check Billy's Github
 -- https://github.com/WilliamVenner/gmsv_concolormsg
 
-if not (MENU_DLL or not game.IsDedicated() or file.Exists( "lua/bin/gmsv_concolormsg_win64.dll", "GAME" )) and system.IsWindows() then
-	print( "You can add some color to your gray console, just install: https://github.com/WilliamVenner/gmsv_concolormsg" )
+if not (MENU_DLL or not game.IsDedicated() or file.Exists( 'lua/bin/gmsv_concolormsg_win64.dll', 'GAME' )) and system.IsWindows() then
+	print( 'You can add some color to your gray console, just install: https://github.com/WilliamVenner/gmsv_concolormsg' )
 end
 
 local colors = {
@@ -50,8 +50,8 @@ do
 	local type = type
 
 	function mt.new( title )
-		assert( (title == nil) or type( title ) == "string", 'title must be a string' )
-		return setmetatable({["title"] = title}, mt)
+		assert( (title == nil) or type( title ) == 'string', 'title must be a string' )
+		return setmetatable({['title'] = title}, mt)
 	end
 
 end
@@ -75,7 +75,7 @@ do
 
 	local tonumber = tonumber
 	local tostring = tostring
-	local title_template = "[%s]:"
+	local title_template = '[%s]:'
 
 	function mt:build( title, level, message, ... )
 		local args = {...}
@@ -127,9 +127,9 @@ end
 
 do
 
-	local developer = cvars.Number( "developer", 0 ) ~= 0
-	cvars.AddChangeCallback("developer", function( name, old, new )
-		developer = new ~= "0"
+	local developer = cvars.Number( 'developer', 0 ) ~= 0
+	cvars.AddChangeCallback('developer', function( name, old, new )
+		developer = new ~= '0'
 	end)
 
 	function mt:debug( message, ... )

@@ -1,4 +1,4 @@
-module( "GPM", package.seeall )
+module( 'GPM', package.seeall )
 
 Author = Author or {}
 
@@ -45,9 +45,9 @@ do
 	local type = type
 
 	function mt.new( v )
-		assert( type( v ) == "string" or type( v ) == "table", 'author must be a parsable string or table' )
+		assert( type( v ) == 'string' or type( v ) == 'table', 'author must be a parsable string or table' )
 
-		if type( v ) == "string" then
+		if type( v ) == 'string' then
 			v = parseAuthor(v)
 		end
 

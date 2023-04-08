@@ -1,4 +1,4 @@
-module( "GPM", package.seeall )
+module( 'GPM', package.seeall )
 
 -- Semver lua parser. Based on https://github.com/kikito/semver.lua
 
@@ -136,7 +136,7 @@ function mt:nextPatch()
 end
 
 function mt:__eq( other )
-	return type( other ) == "table" and
+	return type( other ) == 'table' and
 		self.major == other.major and
 		self.minor == other.minor and
 		self.patch == other.patch and
@@ -382,7 +382,7 @@ function mt.new( major, minor, patch, prerelease, buildmeta )
 end
 
 setmetatable(Semver, {
-	["__call"] = function( nan, ... )
+	['__call'] = function( nan, ... )
 		return mt.new(...)
 	end
 })

@@ -1,4 +1,6 @@
-module( "GPM", package.seeall )
+module( 'GPM', package.seeall )
+
+Version = '2.2.2'
 
 local type = type
 
@@ -30,7 +32,7 @@ do
 		local buffer = {}
 		for i = 1, #args do
 			local str = args[i]
-			if type( str ) == "string" then
+			if type( str ) == 'string' then
 				table_insert( buffer, str )
 			end
 		end

@@ -1,4 +1,4 @@
-module( "GPM", package.seeall )
+module( 'GPM', package.seeall )
 
 local setmetatable = setmetatable
 local isstring = isstring

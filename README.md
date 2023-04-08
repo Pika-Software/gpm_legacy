@@ -1,19 +1,9 @@
-# gpm [![Lint](https://github.com/Pika-Software/gpm/actions/workflows/lint.yml/badge.svg)](https://github.com/Pika-Software/gpm/actions/workflows/lint.yml)
-![GLua Package Manager](https://i.imgur.com/w454Ms1.png?1)
+# GLua Package Manager: Legacy
 
 ## Features
 * Package information structure like [package.json](https://docs.npmjs.com/cli/v6/configuring-npm/package-json)
 * [SemVer 2.0](https://semver.org/) support with [npm version matching](https://docs.npmjs.com/cli/v6/configuring-npm/package-json#dependencies)
 * Package dependency support
-
-## Planned features
- * [ ] Concommands
- * [ ] Package registry with package verification
- * [ ] Package enviroment isolation
- * [ ] GUI Support ( gpm-gui package )
- * [ ] Package hot reload
- * [ ] Package downloading/updating via GitHub
- * [ ] Automatic downloading dependencies from github
 
 ## How to create your own package?
 1. Create `package.lua` and `main.lua` files in directory `lua/gpm/packages/<your-package-name>/`.
