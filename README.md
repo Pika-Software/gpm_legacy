@@ -1,5 +1,6 @@
-# GLua Package Manager: Legacy
 [![GLuaFixer](https://github.com/Pika-Software/gpm_legacy/actions/workflows/glualint-check.yml/badge.svg)](https://github.com/Pika-Software/gpm_legacy/actions/workflows/glualint-check.yml)
+# GLua Package Manager: Legacy
+Warning: This version of gpm is outdated, if you are going to use it in your projects, it is better to use the main version, [here](https://github.com/Pika-Software/glua_package_manager). 
 
 ## Features
 * Package information structure like [package.json](https://docs.npmjs.com/cli/v6/configuring-npm/package-json)
