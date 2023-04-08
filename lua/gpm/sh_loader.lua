@@ -10,8 +10,8 @@ do
 
 	local log = Logger( 'GPM' )
 	concommand.Add('gpm_list', function()
-		for name, package in pairs( Packages ) do
-			log:info( '{1} - {2}', package, package.description == '' and 'No Description' or package.description )
+		for _, pkg in pairs( Packages ) do
+			log:info( '{1} - {2}', pkg, pkg.description == '' and 'No Description' or pkg.description )
 		end
 	end)
 
@@ -45,7 +45,6 @@ do
 
 	do
 
-		local AddCSLuaFile = AddCSLuaFile
 		local CompileFile = CompileFile
 		local setfenv = setfenv
 		local assert = assert
@@ -58,13 +57,6 @@ do
 			if file_Exists( filename, 'LUA' ) then
 				assert( CLIENT or file.Size( filename, 'LUA' ) > 0, filename .. ' is empty!' )
 
-				if CLIENT and package.onlyserver then return end
-
-				if SERVER then
-					AddCSLuaFile( filename )
-					if package.onlyclient then return end
-				end
-
 				local func = CompileFile( filename )
 				assert( type( func ) == 'function', 'Attempt to compile package ' .. packageName .. ' failed!' )
 
@@ -73,21 +65,21 @@ do
 
 				local ok, data = pcall( func )
 				if (ok) then
-					local package = {}
+					local pkg = {}
 					if type( data ) == 'table' then
-						package = data
+						pkg = data
 					else
-						package = env
+						pkg = env
 					end
 
-					for key, value in pairs( package ) do
-						package[ key:lower() ] = value
+					for key, value in pairs( pkg ) do
+						pkg[ key:lower() ] = value
 					end
 
-					package.name = package.name or packageName
-					package.root = path
+					pkg.name = pkg.name or packageName
+					pkg.root = path
 
-					return Package( package )
+					return Package( pkg )
 				end
 
 				Error( 'Package \'' .. packageName .. '\' contains an error!' )
@@ -121,13 +113,13 @@ do
 			end
 
 			for num, dir in ipairs( dirs ) do
-				local ok, package = xpcall( getPackageFromPath, function( err )
+				local ok, pkg = xpcall( getPackageFromPath, function( err )
 					log:error( 'failed to load package from \'{1}\':', dir )
 					ErrorNoHaltWithStack( err )
 				end, dir )
 
 				if ok then
-					table_insert( packages, package )
+					table_insert( packages, pkg )
 				end
 			end
 
