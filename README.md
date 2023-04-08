@@ -1,5 +1,5 @@
 # GLua Package Manager: Legacy
-[![Lint](https://github.com/Pika-Software/gpm_legacy/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/Pika-Software/gpm_legacy/actions/workflows/lint.yml)
+[![GLuaFixer](https://github.com/Pika-Software/gpm_legacy/actions/workflows/glualint-check.yml/badge.svg)](https://github.com/Pika-Software/gpm_legacy/actions/workflows/glualint-check.yml)
 
 ## Features
 * Package information structure like [package.json](https://docs.npmjs.com/cli/v6/configuring-npm/package-json)
